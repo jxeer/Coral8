@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { WaveAnimation } from "./wave-animation";
+import { WalletConnectionButton } from "./wallet-connection-button";
 import { useAppContext } from "../contexts/app-context";
 import { 
   Home, FileText, Receipt, Users, CheckSquare, Wallet
@@ -50,17 +51,9 @@ export function Sidebar() {
         </nav>
       </div>
       
-      {/* Wallet Address Section */}
+      {/* Wallet Connection Section */}
       <div className="absolute bottom-6 left-6 right-6">
-        <div className="bg-ocean-blue/20 rounded-xl p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <Wallet className="w-4 h-4 text-seafoam" />
-            <span className="text-xs text-seafoam">Wallet</span>
-          </div>
-          <p className="text-sm font-mono text-pearl-white truncate">
-            {walletAddress}
-          </p>
-        </div>
+        <WalletConnectionButton />
       </div>
     </div>
   );

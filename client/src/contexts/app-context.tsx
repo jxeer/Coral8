@@ -6,6 +6,7 @@ interface AppContextType {
   tokenBalance: TokenBalance | null;
   userStats: UserStats | null;
   walletAddress: string;
+  setWalletAddress: (address: string) => void;
   refreshData: () => Promise<void>;
 }
 
@@ -15,8 +16,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
-
-  const walletAddress = user?.walletAddress || "0x1234...5678";
+  const [walletAddress, setWalletAddress] = useState<string>(user?.walletAddress || "");
 
   const refreshData = async () => {
     try {
@@ -55,6 +55,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tokenBalance,
       userStats,
       walletAddress,
+      setWalletAddress,
       refreshData
     }}>
       {children}
