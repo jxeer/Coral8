@@ -1,3 +1,11 @@
+/**
+ * Authentication Service
+ * Handles traditional password-based auth and Web3 wallet authentication
+ * Supports multiple authentication methods including MetaMask wallet connections
+ * Integrates with Coral8's user management and session handling systems
+ * Provides secure JWT token generation and signature verification
+ */
+
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
@@ -7,12 +15,22 @@ import { db } from './db';
 import { users, sessions, passwordResetTokens, emailVerificationTokens } from '@shared/schema';
 import type { User, RegisterRequest, LoginRequest, WalletLoginRequest } from '@shared/schema';
 
+// Security configuration constants
 const JWT_SECRET = process.env.JWT_SECRET || 'coral8-dev-jwt-secret-please-change-in-production';
-const SALT_ROUNDS = 12;
+const SALT_ROUNDS = 12; // bcrypt salt rounds for password hashing
 
+/**
+ * Authentication Service Class
+ * Provides comprehensive authentication methods for Coral8 application
+ * Supports traditional passwords, Web3 wallets, and session management
+ */
 export class AuthService {
   
-  // Password-based authentication
+  /**
+   * Register a new user with traditional password authentication
+   * @param data - Registration data including username, email, password, and optional profile info
+   * @returns Promise resolving to user object and JWT token
+   */
   async register(data: RegisterRequest): Promise<{ user: Omit<User, 'passwordHash'>, token: string }> {
     // Check if username or email already exists
     const existingUser = await db.select()

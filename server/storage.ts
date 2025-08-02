@@ -1,5 +1,12 @@
+/**
+ * Storage Layer Implementation
+ * Provides data access abstractions for both in-memory and database storage
+ * Implements the IStorage interface for consistent data operations across the application
+ * Supports both development (MemStorage) and production (DatabaseStorage) environments
+ */
+
 import { 
-  type User, type InsertUser,
+  type User, type InsertUser, type UpsertUser,
   type LaborLog, type InsertLaborLog,
   type TokenBalance, type InsertTokenBalance,
   type GovernanceProposal, type InsertGovernanceProposal,
@@ -12,12 +19,22 @@ import { db } from "./db";
 import { users, laborLogs, tokenBalances, governanceProposals, votes, marketplaceItems, userStats } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 
+/**
+ * Storage Interface
+ * Defines all data access methods for consistent storage operations
+ * Must be implemented by both in-memory and database storage classes
+ * User methods marked as mandatory are required for Replit Auth integration
+ */
 export interface IStorage {
-  // Users (IMPORTANT - these methods are mandatory for Replit Auth)
+  // Users (Updated for Google OAuth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByWallet(walletAddress: string): Promise<User | undefined>;
+  getUserByEmail?(email: string): Promise<User | undefined>;
+  getUserByGoogleId?(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserGoogleId?(userId: string, googleId: string): Promise<void>;
+  updateUser?(userId: string, updates: Partial<User>): Promise<void>;
 
   // Labor Logs
   createLaborLog(laborLog: InsertLaborLog & { userId: string; cowTokensEarned: string; multiplier: string; proofHash?: string }): Promise<LaborLog>;
@@ -69,16 +86,27 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleData() {
-    // Create a default user
+    // Create a default user with all required fields
     const defaultUser: User = {
       id: "default-user",
+      email: "demo@coral8.com",
+      firstName: "Ocean",
+      lastName: "Guardian",
+      profileImageUrl: null,
       walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
       username: "ocean_guardian",
+      passwordHash: null,
+      bio: "Demo user for Coral8 cultural labor platform",
+      isEmailVerified: true,
+      isWalletVerified: true,
+      lastLogin: new Date(),
+      authMethod: "replit",
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.users.set(defaultUser.id, defaultUser);
 
-    // Create default token balance
+    // Create default token balance with all required fields
     const defaultBalance: TokenBalance = {
       id: "default-balance",
       userId: defaultUser.id,
@@ -159,8 +187,51 @@ export class MemStorage implements IStorage {
     this.marketplaceItems.set(item2.id, item2);
   }
 
+  /**
+   * Get user by ID
+   * Required for Replit Auth integration
+   */
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
+  }
+
+  /**
+   * Upsert user (insert or update)
+   * Required for Replit Auth integration - creates or updates user from OAuth claims
+   */
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existingUser = this.users.get(userData.id || "");
+    if (existingUser) {
+      // Update existing user
+      const updatedUser: User = {
+        ...existingUser,
+        ...userData,
+        updatedAt: new Date(),
+      };
+      this.users.set(updatedUser.id, updatedUser);
+      return updatedUser;
+    } else {
+      // Create new user
+      const newUser: User = {
+        id: userData.id || randomUUID(),
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
+        walletAddress: userData.walletAddress || null,
+        username: userData.username || null,
+        passwordHash: userData.passwordHash || null,
+        bio: userData.bio || null,
+        isEmailVerified: userData.isEmailVerified || false,
+        isWalletVerified: userData.isWalletVerified || false,
+        lastLogin: userData.lastLogin || null,
+        authMethod: userData.authMethod || "replit",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      this.users.set(newUser.id, newUser);
+      return newUser;
+    }
   }
 
   async getUserByWallet(walletAddress: string): Promise<User | undefined> {
@@ -174,10 +245,53 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     this.users.set(id, user);
     return user;
+  }
+
+  /**
+   * Google OAuth Support Methods - MemStorage Implementation
+   * 
+   * In-memory implementation of Google OAuth methods for development.
+   * Comments added for clarity and debugging support.
+   */
+
+  // Find user by email address (for Google OAuth account linking)
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    for (const user of this.users.values()) {
+      if (user.email === email) return user;
+    }
+    return undefined;
+  }
+
+  // Find user by Google ID (primary Google OAuth lookup)
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    for (const user of this.users.values()) {
+      if (user.googleId === googleId) return user;
+    }
+    return undefined;
+  }
+
+  // Link Google ID to existing user account
+  async updateUserGoogleId(userId: string, googleId: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      user.googleId = googleId;
+      user.updatedAt = new Date();
+      this.users.set(userId, user);
+    }
+  }
+
+  // Update user profile with Google OAuth data
+  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      Object.assign(user, updates, { updatedAt: new Date() });
+      this.users.set(userId, user);
+    }
   }
 
   async createLaborLog(laborLog: InsertLaborLog & { userId: string; cowTokensEarned: string; multiplier: string; proofHash?: string }): Promise<LaborLog> {
@@ -348,6 +462,39 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
+  }
+
+  /**
+   * Google OAuth Support Methods - Database Implementation
+   * 
+   * These methods enable seamless Google OAuth integration with proper
+   * database persistence. Comments added for maintenance clarity.
+   */
+
+  // Find user by email address (for Google OAuth account linking)
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return user || undefined;
+  }
+
+  // Find user by Google ID (primary Google OAuth lookup)
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId)).limit(1);
+    return user || undefined;
+  }
+
+  // Link Google ID to existing user account
+  async updateUserGoogleId(userId: string, googleId: string): Promise<void> {
+    await db.update(users)
+      .set({ googleId, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  // Update user profile with Google OAuth data
+  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
+    await db.update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, userId));
   }
 
   // Labor Logs

@@ -1,6 +1,15 @@
+/**
+ * Dashboard Component
+ * Main authenticated user interface for Coral8 application
+ * Provides access to labor logging, token balances, governance, and marketplace
+ * Features responsive design with mobile-first layout and sidebar navigation
+ */
+
 import { useIsMobile } from "../hooks/use-mobile";
 import { Sidebar } from "../components/sidebar";
 import { MobileNavigation } from "../components/mobile-navigation";
+import { MobileDashboard } from "../components/mobile-dashboard";
+import { PWAInstallBanner } from "../components/pwa-install-banner";
 import { WalletConnectionButton } from "../components/wallet-connection-button";
 import { DashboardCards } from "../components/dashboard-cards";
 import { LaborLogging } from "../components/labor-logging";
@@ -13,16 +22,25 @@ export default function Dashboard() {
   const isMobile = useIsMobile();
   const { walletAddress } = useAppContext();
 
+  // Use mobile-optimized dashboard for mobile devices
+  if (isMobile) {
+    return (
+      <>
+        <MobileDashboard />
+        <MobileNavigation />
+        <PWAInstallBanner />
+      </>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-shell-cream">
       {/* Sidebar for desktop */}
       <Sidebar />
-      
-      {/* Mobile Navigation */}
-      <MobileNavigation />
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64 p-4 lg:p-8 pb-20 lg:pb-8">
+      <div className="flex-1 lg:ml-64 p-4 lg:p-8 pb-8">
+        <PWAInstallBanner />
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">

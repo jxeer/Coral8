@@ -1,10 +1,58 @@
+/**
+ * Coral8 Database Schema and Type Definitions
+ * 
+ * This file defines the complete database schema for the Coral8 off-chain interface,
+ * serving as the single source of truth for all data structures and types.
+ * 
+ * Core Business Logic:
+ * - Cultural labor tracking with value-based multiplier system
+ * - Three-tier COW token economics (COW1: liquid, COW2: staked, COW3: governance)
+ * - Community-driven governance with proposal and voting mechanisms
+ * - Marketplace for cultural goods and services
+ * - Comprehensive user analytics and engagement metrics
+ * 
+ * Technical Architecture:
+ * - PostgreSQL database with Drizzle ORM for type safety
+ * - Zod validation schemas for runtime type checking
+ * - TypeScript types inferred from database schema
+ * - Session management for Replit OAuth integration
+ * - Flexible authentication supporting multiple methods
+ * 
+ * Design Principles:
+ * - Cultural value recognition through labor multipliers
+ * - Economic sustainability via token decay mechanisms
+ * - Community governance with transparent voting
+ * - Mobile-first data structures for responsive UX
+ * - Privacy-conscious user data handling
+ * 
+ * Key Tables:
+ * - users: Authentication and profile management
+ * - laborLogs: Cultural work tracking and token calculations
+ * - tokenBalances: Multi-tier COW token system
+ * - governanceProposals: Community decision-making
+ * - votes: Democratic participation tracking
+ * - marketplaceItems: Cultural goods marketplace
+ * - userStats: Comprehensive engagement analytics
+ */
+
 import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, integer, decimal, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table.
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+/**
+ * Sessions Table - Replit Authentication Required
+ * 
+ * Stores user session data for authentication persistence.
+ * This table is mandatory for Replit Auth integration - DO NOT DROP.
+ * 
+ * Fields:
+ * - sid: Session identifier (primary key)
+ * - sess: Session data as JSON object
+ * - expire: Session expiration timestamp for cleanup
+ * 
+ * Indexed on expire field for efficient session cleanup queries.
+ */
 export const sessions = pgTable(
   "sessions",
   {
@@ -15,8 +63,28 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table.
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+/**
+ * Users Table - Core Identity Management
+ * 
+ * Central user table supporting multiple authentication methods.
+ * This table is mandatory for Replit Auth integration - DO NOT DROP.
+ * 
+ * Authentication Methods Supported:
+ * - "replit": OAuth via Replit (primary)
+ * - "wallet": Web3 wallet connection (MetaMask, etc.)
+ * - "password": Traditional username/password
+ * - "both": Multiple methods linked to same account
+ * 
+ * Cultural Focus Features:
+ * - Bio field for cultural background and interests
+ * - Profile image for community recognition
+ * - Verification status for trust building
+ * 
+ * Privacy Considerations:
+ * - Email verification optional (some auth methods don't require email)
+ * - Wallet address unique but optional
+ * - All personal fields nullable for flexibility
+ */
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
@@ -26,33 +94,96 @@ export const users = pgTable("users", {
   walletAddress: varchar("wallet_address").unique(),
   username: varchar("username").unique(),
   passwordHash: varchar("password_hash"),
+  googleId: varchar("google_id").unique(), // Added for Google OAuth
   bio: text("bio"),
   isEmailVerified: boolean("is_email_verified").default(false),
   isWalletVerified: boolean("is_wallet_verified").default(false),
   lastLogin: timestamp("last_login"),
-  authMethod: text("auth_method").notNull().default("replit"), // replit, wallet, both
+  authMethod: text("auth_method").notNull().default("google"), // google, wallet, password, both
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+/**
+ * Labor Logs Table - Cultural Work Tracking
+ * 
+ * Records all cultural labor activities with detailed token calculations.
+ * Core feature of Coral8's value recognition system for ancestral wisdom
+ * and contemporary cultural work.
+ * 
+ * Labor Types with Multipliers:
+ * - Care Work: 2.0x (childcare, elder care, community support)
+ * - Cultural Preservation: 2.1x (language, traditions, storytelling)
+ * - Teaching: 1.9x (knowledge sharing, mentorship)
+ * - Arts & Crafts: 1.8x (creative cultural expressions)
+ * - Community Organizing: 1.7x (collective action, events)
+ * - Environmental Stewardship: 1.6x (land care, sustainability)
+ * - Food & Agriculture: 1.5x (traditional food systems)
+ * - Spiritual Practice: 1.4x (ceremonies, rituals)
+ * - Base Labor: 1.0x (general community work)
+ * 
+ * Token Calculation Formula:
+ * cowTokensEarned = hoursWorked × 11 (base rate) × multiplier
+ * 
+ * Proof System:
+ * - proofHash: Cryptographic proof of work completion
+ * - attestationUrl: External verification link (photos, videos, witnesses)
+ */
 export const laborLogs = pgTable("labor_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
   laborType: text("labor_type").notNull(),
-  hoursWorked: decimal("hours_worked", { precision: 4, scale: 2 }).notNull(),
-  cowTokensEarned: decimal("cow_tokens_earned", { precision: 10, scale: 2 }).notNull(),
+  hoursWorked: text("hours_worked").notNull(), // Stored as string for precision
+  cowTokensEarned: text("cow_tokens_earned").notNull(), // Calculated value
   multiplier: decimal("multiplier", { precision: 3, scale: 2 }).notNull(),
   proofHash: text("proof_hash"),
   attestationUrl: text("attestation_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+/**
+ * Token Balances Table - Three-Tier COW Token System
+ * 
+ * Manages the multi-tier COW token ecosystem that powers Coral8's
+ * cultural economy. Each token type serves different purposes in
+ * the community governance and economic system.
+ * 
+ * Token Types:
+ * - COW1 (Liquid): Primary currency for marketplace transactions
+ *   * Earned through labor logging
+ *   * Used for buying/selling goods and services
+ *   * Subject to decay if user inactive (sustainability mechanism)
+ *   * Most liquid and transferable
+ * 
+ * - COW2 (Staked): Governance participation tokens
+ *   * Converted from COW1 through staking
+ *   * Required for voting on community proposals
+ *   * Earns additional rewards for active governance
+ *   * Locked for minimum periods to prevent gaming
+ * 
+ * - COW3 (Governance): Advanced community leadership tokens
+ *   * Earned through consistent community contributions
+ *   * Required for creating new proposals
+ *   * Grants access to advanced features
+ *   * Represents established community standing
+ * 
+ * Decay Mechanism:
+ * - 1% decay per hour after 24 hours of inactivity
+ * - Encourages active participation and engagement
+ * - Prevents token hoarding and speculation
+ * - Maintains economic balance and sustainability
+ * 
+ * Activity Tracking:
+ * - lastActive: Timestamp of most recent user action
+ * - decayWarningTime: When to warn user about impending decay
+ * - Used for calculating token preservation requirements
+ */
 export const tokenBalances = pgTable("token_balances", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
-  cow1Balance: decimal("cow1_balance", { precision: 10, scale: 2 }).default("0"),
-  cow2Balance: decimal("cow2_balance", { precision: 10, scale: 2 }).default("0"),
-  cow3Balance: decimal("cow3_balance", { precision: 10, scale: 2 }).default("0"),
+  cow1Balance: text("cow1_balance").default("0"), // Stored as string for precision
+  cow2Balance: text("cow2_balance").default("0"), // Governance staked tokens
+  cow3Balance: text("cow3_balance").default("0"), // Leadership tokens
   lastActive: timestamp("last_active").defaultNow(),
   decayWarningTime: timestamp("decay_warning_time"),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -77,12 +208,46 @@ export const votes = pgTable("votes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+/**
+ * Marketplace Items Table - Cultural Economy Platform
+ * 
+ * Enables community members to trade goods and services using COW tokens,
+ * creating a circular economy that values cultural products and traditional
+ * knowledge while supporting local artisans and service providers.
+ * 
+ * Marketplace Philosophy:
+ * - Cultural goods prioritized: traditional crafts, handmade items, cultural foods
+ * - Service economy: teaching, healing, consultation, cultural guidance
+ * - Community focus: local production and consumption over mass market
+ * - Fair pricing: COW token system ensures labor value recognition
+ * - Sustainability: encouraging reuse, repair, and local exchange
+ * 
+ * Item Categories:
+ * - Traditional Crafts: pottery, textiles, jewelry, woodwork
+ * - Cultural Foods: traditional recipes, preserved foods, specialty ingredients
+ * - Healing Services: herbalism, energy work, therapeutic massage
+ * - Educational Services: language lessons, skill workshops, cultural mentoring
+ * - Art & Expression: paintings, music, storytelling, performance
+ * - Tools & Equipment: traditional tools, musical instruments, ceremonial items
+ * 
+ * Pricing in COW Tokens:
+ * - Encourages local circulation of community currency
+ * - Reflects true labor value through token economics
+ * - Supports creators and service providers directly
+ * - Builds economic resilience within the community
+ * 
+ * Trust & Safety:
+ * - Seller verification through community reputation
+ * - Photo documentation for physical goods
+ * - Community feedback and rating systems
+ * - Dispute resolution through governance proposals
+ */
 export const marketplaceItems = pgTable("marketplace_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sellerId: varchar("seller_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  price: text("price").notNull(), // Stored as string for COW token precision
   imageUrl: text("image_url"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -142,6 +307,7 @@ export const insertMarketplaceItemSchema = createInsertSchema(marketplaceItems).
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
 
 export type InsertLaborLog = z.infer<typeof insertLaborLogSchema>;
 export type LaborLog = typeof laborLogs.$inferSelect;

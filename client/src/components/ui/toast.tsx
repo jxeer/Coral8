@@ -1,3 +1,38 @@
+/**
+ * Toast Notification System - Mobile-Optimized Feedback
+ * 
+ * Provides elegant, non-intrusive notifications for user actions
+ * throughout the Coral8 application. Replaces browser alerts with
+ * branded, accessible notifications that work well on mobile.
+ * 
+ * Features:
+ * - Auto-dismissal with configurable timing
+ * - Swipe-to-dismiss gesture support for mobile
+ * - Multiple variants (default, destructive) for different message types
+ * - Smooth animations for enter/exit transitions
+ * - Queue management for multiple simultaneous toasts
+ * - Accessibility with screen reader announcements
+ * 
+ * Mobile Optimizations:
+ * - Touch-friendly close button size and placement
+ * - Responsive positioning (top on mobile, bottom-right on desktop)
+ * - Gesture support for natural mobile interactions
+ * - Appropriate animation timing for mobile performance
+ * 
+ * Usage in Coral8:
+ * - Labor logging confirmation ("Work logged successfully!")
+ * - Token transfer feedback ("25 COW1 tokens transferred")
+ * - Governance voting confirmation ("Vote recorded for Proposal #3")
+ * - Marketplace actions ("Item added to marketplace")
+ * - Error handling ("Please check your internet connection")
+ * 
+ * Design System:
+ * - Consistent with oceanic color palette
+ * - Proper contrast for readability in various lighting
+ * - Subtle shadows and borders for visual hierarchy
+ * - Typography that matches application branding
+ */
+
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"

@@ -1,10 +1,51 @@
+/**
+ * Coral8 API Routes - Server Endpoint Configuration
+ * 
+ * This file defines all RESTful API endpoints for the Coral8 off-chain interface,
+ * implementing the complete backend functionality for cultural labor tracking,
+ * token economics, governance, and community marketplace.
+ * 
+ * API Categories:
+ * - Authentication: Multi-method user authentication (Replit OAuth, wallet, password)
+ * - Labor Tracking: Cultural work logging with multiplier-based token calculations
+ * - Token Economics: Three-tier COW token system management and transfers
+ * - Governance: Community proposal creation and democratic voting
+ * - Marketplace: Cultural goods and services trading platform
+ * - User Analytics: Comprehensive stats and engagement metrics
+ * - Decay System: Token sustainability through activity-based value preservation
+ * 
+ * Labor Economics Implementation:
+ * - Base rate: 11 COW tokens per hour
+ * - Cultural multipliers: Care Work (2.0x), Cultural Preservation (2.1x), etc.
+ * - Proof-of-work system with cryptographic verification
+ * - Community attestation through witness verification
+ * 
+ * Token System Architecture:
+ * - COW1: Liquid tokens for immediate transactions and marketplace
+ * - COW2: Staked tokens for governance voting power
+ * - COW3: Governance tokens for proposal creation and advanced features
+ * - Decay mechanism: 1% per hour after 24 hours of inactivity
+ * 
+ * Security & Validation:
+ * - Zod schema validation for all incoming data
+ * - Authentication middleware for protected endpoints
+ * - SQL injection prevention via Drizzle ORM
+ * - Rate limiting considerations for public demo access
+ * 
+ * Cultural Focus:
+ * - Recognition of ancestral wisdom and traditional knowledge
+ * - Value-based multipliers for community-essential work
+ * - Democratic governance with transparent decision-making
+ * - Marketplace supporting cultural goods and services
+ */
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";
 import { storage } from "./storage";
 import { authService } from "./auth";
 import { authenticateToken, optionalAuth, type AuthenticatedRequest } from "./middleware";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupGoogleAuth, isAuthenticated } from "./google-auth";
 import { loginSchema, registerSchema, walletLoginSchema } from "@shared/schema";
 import { insertLaborLogSchema, insertVoteSchema } from "@shared/schema";
 import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-index";
@@ -12,8 +53,13 @@ import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
   
-  // Setup Replit Auth middleware
-  await setupAuth(app);
+  /**
+   * Google OAuth Authentication Setup
+   * 
+   * Replaced Replit Auth with Google OAuth for more reliable authentication.
+   * Provides familiar Google sign-in experience and better mobile support.
+   */
+  await setupGoogleAuth(app);
 
   // Authentication routes
   app.post('/api/auth/register', async (req, res) => {
@@ -88,11 +134,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Replit Auth routes
+  /**
+   * Google OAuth User Endpoint
+   * 
+   * Updated to work with Google OAuth session format instead of Replit claims.
+   * Returns current authenticated user data for frontend authentication state.
+   */
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      // req.user now contains the User object from Google OAuth
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -161,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update token balances (simplified - add to COW1 for now)
       const currentBalance = await storage.getTokenBalance("default-user");
       if (currentBalance) {
-        const newCow1Balance = parseFloat(currentBalance.cow1Balance) + cowTokensEarned;
+        const newCow1Balance = parseFloat(currentBalance.cow1Balance || "0") + cowTokensEarned;
         await storage.updateTokenBalance("default-user", {
           cow1Balance: newCow1Balance.toString(),
           lastActive: new Date()
@@ -171,9 +222,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user stats
       const currentStats = await storage.getUserStats("default-user");
       if (currentStats) {
-        const newMonthlyEarnings = parseFloat(currentStats.monthlyEarnings) + cowTokensEarned;
-        const newFocusScore = Math.min(currentStats.focusScore + 1, 10);
-        await storage.updateUserStats("default-user", {
+        const newMonthlyEarnings = parseFloat(currentStats.monthlyEarnings || "0") + cowTokensEarned;
+        const newFocusScore = Math.min((currentStats.focusScore || 0) + 1, 10);
+        await storage.updateUserStats("default-user" || "", {
           monthlyEarnings: newMonthlyEarnings.toString(),
           focusScore: newFocusScore
         });
@@ -232,8 +283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update proposal vote counts
       const proposal = await storage.getProposal(proposalId);
       if (proposal) {
-        const newVotesYes = vote ? proposal.votesYes + 1 : proposal.votesYes;
-        const newVotesNo = vote ? proposal.votesNo : proposal.votesNo + 1;
+        const newVotesYes = vote ? (proposal.votesYes || 0) + 1 : (proposal.votesYes || 0);
+        const newVotesNo = vote ? (proposal.votesNo || 0) : (proposal.votesNo || 0) + 1;
         await storage.updateProposalVotes(proposalId, newVotesYes, newVotesNo);
       }
 
@@ -263,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const now = new Date();
-      const lastActive = new Date(balance.lastActive);
+      const lastActive = new Date(balance.lastActive || new Date());
       const hoursSinceActive = (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60);
 
       // Apply 1% decay per hour of inactivity after 24 hours
@@ -272,9 +323,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const hoursOfDecay = hoursSinceActive - 24;
         const decayFactor = Math.pow(1 - decayRate, hoursOfDecay);
 
-        const newCow1Balance = (parseFloat(balance.cow1Balance) * decayFactor).toString();
-        const newCow2Balance = (parseFloat(balance.cow2Balance) * decayFactor).toString();
-        const newCow3Balance = (parseFloat(balance.cow3Balance) * decayFactor).toString();
+        const newCow1Balance = (parseFloat(balance.cow1Balance || "0") * decayFactor).toString();
+        const newCow2Balance = (parseFloat(balance.cow2Balance || "0") * decayFactor).toString();
+        const newCow3Balance = (parseFloat(balance.cow3Balance || "0") * decayFactor).toString();
 
         await storage.updateTokenBalance("default-user", {
           cow1Balance: newCow1Balance,

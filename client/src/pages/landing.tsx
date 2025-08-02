@@ -1,3 +1,10 @@
+/**
+ * Landing Page Component
+ * Main public-facing page for unauthenticated users
+ * Features Coral8/Cowrie ecosystem introduction with oceanic Yemaya-inspired design
+ * Showcases cultural labor logging, token economics, and community governance features
+ */
+
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { WaveAnimation } from '@/components/wave-animation';
@@ -16,10 +23,11 @@ export function Landing() {
               <p className="text-sm text-moon-gray">Cowrie Ecosystem</p>
             </div>
           </div>
-          <Button asChild className="bg-seafoam hover:bg-seafoam/90 text-deep-navy">
-            <Link href="/login">
-              Sign In <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
+          <Button 
+            className="bg-seafoam hover:bg-seafoam/90 text-deep-navy"
+            onClick={() => window.location.href = '/auth/google'}
+          >
+            Sign in with Google <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </header>
@@ -37,20 +45,23 @@ export function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              asChild 
               size="lg" 
               className="bg-seafoam hover:bg-seafoam/90 text-deep-navy font-semibold px-8 py-4 text-lg"
+              onClick={() => window.location.href = '/auth/google'}
             >
-              <Link href="/login">
-                Get Started <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
+              Sign in with Google <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button 
               variant="outline" 
               size="lg" 
               className="border-seafoam text-seafoam hover:bg-seafoam/10 px-8 py-4 text-lg"
+              onClick={() => {
+                // Temporary demo mode for previewing mobile features
+                localStorage.setItem('demo_mode', 'true');
+                window.location.href = '/demo';
+              }}
             >
-              Learn More
+              Preview Demo
             </Button>
           </div>
         </div>
@@ -119,7 +130,7 @@ export function Landing() {
             </div>
             <h3 className="text-2xl font-bold text-pearl-white mb-4">Blockchain Connected</h3>
             <p className="text-moon-gray leading-relaxed">
-              Connect your MetaMask wallet to bridge on-chain and off-chain activities in the Cowrie ecosystem.
+              Bridge on-chain and off-chain activities in the Cowrie ecosystem with secure wallet integration.
             </p>
           </div>
 

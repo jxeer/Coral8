@@ -1,3 +1,11 @@
+/**
+ * Labor Logging Component
+ * Core functionality for recording culturally-rooted labor and earning COW tokens
+ * Implements culturally-aware multipliers for different types of work
+ * Features form validation, token calculation preview, and attestation upload
+ * Central to Coral8's mission of valuing traditionally undercompensated labor
+ */
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

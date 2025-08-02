@@ -1,8 +1,16 @@
+/**
+ * Sidebar Navigation Component
+ * Main navigation interface for authenticated users in the Coral8 application
+ * Features oceanic Yemaya-inspired design with wave animation branding
+ * Provides access to dashboard, contracts, invoices, clients, and tasks
+ * Includes user profile management and wallet connection status
+ */
+
 import { Link, useLocation } from "wouter";
 import { WaveAnimation } from "./wave-animation";
 import { WalletConnectionButton } from "./wallet-connection-button";
 import { useAppContext } from "../contexts/app-context";
-import { useAuth } from "../contexts/auth-context";
+import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";

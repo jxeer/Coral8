@@ -1,0 +1,6 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#0F172A"/>
+  <circle cx="256" cy="200" r="80" fill="#06B6D4"/>
+  <path d="M 200 280 Q 256 320 312 280 Q 284 340 256 400 Q 228 340 200 280 Z" fill="#0891B2"/>
+  <text x="256" y="450" text-anchor="middle" fill="#06B6D4" font-family="Arial" font-size="48" font-weight="bold">Coral8</text>
+</svg>
