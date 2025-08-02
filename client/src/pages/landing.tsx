@@ -56,8 +56,13 @@ export function Landing() {
               variant="outline" 
               size="lg" 
               className="border-seafoam text-seafoam hover:bg-seafoam/10 px-8 py-4 text-lg"
+              onClick={() => {
+                // Temporary demo mode for previewing mobile features
+                localStorage.setItem('demo_mode', 'true');
+                window.location.href = '/demo';
+              }}
             >
-              Learn More
+              Preview Demo
             </Button>
           </div>
         </div>

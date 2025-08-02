@@ -13,6 +13,7 @@ import { Sidebar } from "@/components/sidebar";
 
 // Page imports - organized by authentication requirement
 import Dashboard from "./pages/dashboard";
+import DemoDatashboard from "./pages/demo-dashboard";
 import Contracts from "./pages/contracts";
 import Invoices from "./pages/invoices";
 import Clients from "./pages/clients";
@@ -46,6 +47,7 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/login" component={Login} />
+          <Route path="/demo" component={DemoDatashboard} />
         </>
       ) : (
         /* Protected routes - shown when user is authenticated */

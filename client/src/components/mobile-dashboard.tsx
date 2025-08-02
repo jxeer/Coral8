@@ -154,7 +154,7 @@ export function MobileDashboard({ className = "" }: MobileDashboardProps) {
   };
 
   return (
-    <div ref={gestureRef} className={`min-h-screen bg-shell-cream ${className}`}>
+    <div ref={gestureRef as any} className={`min-h-screen bg-shell-cream ${className}`}>
       {/* Mobile Header */}
       <header className="bg-gradient-to-r from-deep-navy to-ocean-blue text-white sticky top-0 z-30 shadow-lg">
         <div className="p-4">
