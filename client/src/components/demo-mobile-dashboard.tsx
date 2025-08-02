@@ -240,7 +240,23 @@ export function DemoMobileDashboard() {
                   
                   <Button 
                     className="w-full bg-seafoam hover:bg-ocean-teal text-deep-navy"
-                    onClick={() => alert('Demo: Token transfer feature! In a real app, you could send COW tokens to community members or exchange them in the marketplace.')}
+                    onClick={() => {
+                      // Create a more elegant notification
+                      const notification = document.createElement('div');
+                      notification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-white border border-seafoam rounded-lg shadow-xl p-4 z-50 max-w-sm mx-4';
+                      notification.innerHTML = `
+                        <div class="flex items-center space-x-2 mb-2">
+                          <div class="w-3 h-3 bg-seafoam rounded-full"></div>
+                          <span class="font-semibold text-deep-navy">Token Transfer</span>
+                        </div>
+                        <p class="text-sm text-moon-gray">Demo feature: Send COW tokens to community members or exchange in marketplace</p>
+                      `;
+                      document.body.appendChild(notification);
+                      setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => document.body.removeChild(notification), 300);
+                      }, 3000);
+                    }}
                   >
                     Transfer Tokens
                   </Button>
@@ -271,7 +287,22 @@ export function DemoMobileDashboard() {
                       <Button 
                         size="sm" 
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => alert('Demo: Voted YES! In a real app, your vote would be recorded on-chain and you\'d earn COW3 governance tokens.')}
+                        onClick={() => {
+                          const notification = document.createElement('div');
+                          notification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-50 border border-green-200 rounded-lg shadow-xl p-4 z-50 max-w-sm mx-4';
+                          notification.innerHTML = `
+                            <div class="flex items-center space-x-2 mb-2">
+                              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                              <span class="font-semibold text-green-800">Vote Recorded: YES</span>
+                            </div>
+                            <p class="text-sm text-green-700">+5 COW3 governance tokens earned!</p>
+                          `;
+                          document.body.appendChild(notification);
+                          setTimeout(() => {
+                            notification.style.opacity = '0';
+                            setTimeout(() => document.body.removeChild(notification), 300);
+                          }, 3000);
+                        }}
                       >
                         Vote Yes
                       </Button>
@@ -279,7 +310,22 @@ export function DemoMobileDashboard() {
                         size="sm" 
                         variant="outline" 
                         className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
-                        onClick={() => alert('Demo: Voted NO! Your governance participation earns you COW3 tokens.')}
+                        onClick={() => {
+                          const notification = document.createElement('div');
+                          notification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-50 border border-red-200 rounded-lg shadow-xl p-4 z-50 max-w-sm mx-4';
+                          notification.innerHTML = `
+                            <div class="flex items-center space-x-2 mb-2">
+                              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                              <span class="font-semibold text-red-800">Vote Recorded: NO</span>
+                            </div>
+                            <p class="text-sm text-red-700">+5 COW3 governance tokens earned!</p>
+                          `;
+                          document.body.appendChild(notification);
+                          setTimeout(() => {
+                            notification.style.opacity = '0';
+                            setTimeout(() => document.body.removeChild(notification), 300);
+                          }, 3000);
+                        }}
                       >
                         Vote No
                       </Button>
@@ -483,9 +529,18 @@ export function DemoMobileNavigation() {
           return (
             <button
               key={item.id}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 setActiveTab(item.id);
-                item.action();
+                // Use a more elegant notification instead of alert
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-ocean-teal text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity';
+                toast.innerHTML = `<strong>${item.name}</strong> - Demo feature preview`;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                  toast.style.opacity = '0';
+                  setTimeout(() => document.body.removeChild(toast), 300);
+                }, 2000);
               }}
               className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 ${
                 isActive 
