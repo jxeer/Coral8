@@ -1,3 +1,10 @@
+/**
+ * Landing Page Component
+ * Main public-facing page for unauthenticated users
+ * Features Coral8/Cowrie ecosystem introduction with oceanic Yemaya-inspired design
+ * Showcases cultural labor logging, token economics, and community governance features
+ */
+
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { WaveAnimation } from '@/components/wave-animation';

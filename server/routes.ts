@@ -1,3 +1,10 @@
+/**
+ * Express Routes Configuration
+ * Defines all API endpoints for the Coral8 application
+ * Includes authentication, labor logging, governance, marketplace, and user management
+ * Integrates Replit Auth, token-based auth, and wallet connections
+ */
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import cookieParser from "cookie-parser";

@@ -1,3 +1,10 @@
+/**
+ * Dashboard Component
+ * Main authenticated user interface for Coral8 application
+ * Provides access to labor logging, token balances, governance, and marketplace
+ * Features responsive design with mobile-first layout and sidebar navigation
+ */
+
 import { useIsMobile } from "../hooks/use-mobile";
 import { Sidebar } from "../components/sidebar";
 import { MobileNavigation } from "../components/mobile-navigation";

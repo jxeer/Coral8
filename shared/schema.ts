@@ -1,3 +1,10 @@
+/**
+ * Database Schema Definitions
+ * Defines all tables, types, and validation schemas for the Coral8 application
+ * Includes user management, labor logging, token economics, governance, and marketplace
+ * Uses Drizzle ORM with PostgreSQL for type-safe database operations
+ */
+
 import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, integer, decimal, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";

@@ -1,5 +1,12 @@
+/**
+ * Storage Layer Implementation
+ * Provides data access abstractions for both in-memory and database storage
+ * Implements the IStorage interface for consistent data operations across the application
+ * Supports both development (MemStorage) and production (DatabaseStorage) environments
+ */
+
 import { 
-  type User, type InsertUser,
+  type User, type InsertUser, type UpsertUser,
   type LaborLog, type InsertLaborLog,
   type TokenBalance, type InsertTokenBalance,
   type GovernanceProposal, type InsertGovernanceProposal,
@@ -12,6 +19,12 @@ import { db } from "./db";
 import { users, laborLogs, tokenBalances, governanceProposals, votes, marketplaceItems, userStats } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 
+/**
+ * Storage Interface
+ * Defines all data access methods for consistent storage operations
+ * Must be implemented by both in-memory and database storage classes
+ * User methods marked as mandatory are required for Replit Auth integration
+ */
 export interface IStorage {
   // Users (IMPORTANT - these methods are mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;

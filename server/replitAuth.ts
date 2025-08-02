@@ -165,13 +165,11 @@ export async function setupAuth(app: Express) {
       }
 
       // Exchange authorization code for access tokens using PKCE
-      const tokens = await client.authorizationCodeGrant(config, new URLSearchParams({
-        client_id: process.env.REPL_ID!,
+      const tokens = await client.authorizationCodeGrant(config, {
         code: code as string,
         redirect_uri: `https://${req.hostname}/oauth2callback`,
-        grant_type: "authorization_code",
         code_verifier: codeVerifier,
-      }));
+      });
 
       const claims = tokens.claims();
       console.log("Claims received:", claims?.sub, claims?.email);
