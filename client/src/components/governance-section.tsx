@@ -50,9 +50,9 @@ export function GovernanceSection() {
   };
 
   const getSupportPercentage = (proposal: GovernanceProposal) => {
-    const totalVotes = proposal.votesYes + proposal.votesNo;
+    const totalVotes = (proposal.votesYes || 0) + (proposal.votesNo || 0);
     if (totalVotes === 0) return 0;
-    return Math.round((proposal.votesYes / totalVotes) * 100);
+    return Math.round(((proposal.votesYes || 0) / totalVotes) * 100);
   };
 
   if (isLoading) {
@@ -85,7 +85,7 @@ export function GovernanceSection() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {proposals?.map((proposal) => {
           const supportPercentage = getSupportPercentage(proposal);
-          const totalVotes = proposal.votesYes + proposal.votesNo;
+          const totalVotes = (proposal.votesYes || 0) + (proposal.votesNo || 0);
           
           return (
             <Card key={proposal.id} className="p-6 border border-ocean-teal/20">
@@ -94,7 +94,7 @@ export function GovernanceSection() {
                   <h4 className="font-semibold text-deep-navy mb-2">{proposal.title}</h4>
                   <p className="text-sm text-moon-gray mb-3">{proposal.description}</p>
                   <div className="flex items-center space-x-4 text-xs text-moon-gray">
-                    <span>{formatTimeLeft(proposal.endTime)}</span>
+                    <span>{formatTimeLeft(proposal.endTime.toString())}</span>
                     <span>{totalVotes} votes</span>
                   </div>
                 </div>

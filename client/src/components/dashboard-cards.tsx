@@ -42,7 +42,7 @@ export function DashboardCards() {
     {
       title: "Emotion Tracker",
       description: "Monitor well-being",
-      value: parseFloat(userStats.emotionScore),
+      value: parseFloat(userStats.emotionScore || "5.0"),
       suffix: "average mood",
       icon: Heart,
       gradient: "from-ocean-teal to-deep-navy",
@@ -51,7 +51,7 @@ export function DashboardCards() {
     {
       title: "Money",
       description: "Monthly COW earned",
-      value: Math.floor(parseFloat(userStats.monthlyEarnings)),
+      value: Math.floor(parseFloat(userStats.monthlyEarnings || "0")),
       suffix: "COW this month",
       icon: DollarSign,
       gradient: "from-ocean-blue to-ocean-teal",
@@ -61,7 +61,7 @@ export function DashboardCards() {
     {
       title: "Attention",
       description: "Visibility and metrics",
-      value: `${(userStats.attentionViews / 1000).toFixed(1)}k`,
+      value: `${((userStats.attentionViews || 0) / 1000).toFixed(1)}k`,
       suffix: "profile views",
       icon: Sun,
       gradient: "from-deep-navy to-ocean-blue",
@@ -70,7 +70,7 @@ export function DashboardCards() {
     {
       title: "Time",
       description: "Scheduled events, COW earning",
-      value: parseFloat(userStats.scheduledHours),
+      value: parseFloat(userStats.scheduledHours || "0"),
       suffix: "hours this week",
       icon: Clock,
       gradient: "from-seafoam to-ocean-blue",

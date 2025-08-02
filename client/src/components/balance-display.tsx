@@ -14,7 +14,7 @@ export function BalanceDisplay({ isMobile = false }: { isMobile?: boolean }) {
     );
   }
 
-  const cow1Decay = calculateDecayTime(new Date(tokenBalance.lastActive));
+  const cow1Decay = calculateDecayTime(new Date(tokenBalance.lastActive || Date.now()));
   const cow2Decay = calculateDecayTime(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000));
   const cow3Decay = calculateDecayTime(new Date(Date.now() - 18 * 60 * 60 * 1000));
 
@@ -47,7 +47,7 @@ export function BalanceDisplay({ isMobile = false }: { isMobile?: boolean }) {
           {balances.map((balance, index) => (
             <div key={balance.type} className="text-center">
               <div className="bg-pearl-white/20 rounded-xl p-4">
-                <p className="text-2xl font-bold">{formatCOWAmount(balance.amount)}</p>
+                <p className="text-2xl font-bold">{formatCOWAmount(balance.amount || "0")}</p>
                 <p className="text-sm opacity-90">{balance.type}</p>
                 <div className="mt-2 bg-pearl-white/30 rounded-full h-2">
                   <div 
@@ -76,7 +76,7 @@ export function BalanceDisplay({ isMobile = false }: { isMobile?: boolean }) {
               <div className="w-16 h-16 bg-pearl-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold">{index + 1}</span>
               </div>
-              <p className="text-3xl font-bold mb-2">{formatCOWAmount(balance.amount)}</p>
+              <p className="text-3xl font-bold mb-2">{formatCOWAmount(balance.amount || "0")}</p>
               <p className="text-lg opacity-90 mb-4">{balance.type}</p>
               <div className="bg-pearl-white/30 rounded-full h-3 mb-2">
                 <div 

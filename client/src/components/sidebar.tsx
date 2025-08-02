@@ -1,3 +1,4 @@
+import { Link, useLocation } from "wouter";
 import { WaveAnimation } from "./wave-animation";
 import { useAppContext } from "../contexts/app-context";
 import { 
@@ -5,15 +6,16 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home, current: true },
-  { name: 'Contracts', href: '/contracts', icon: FileText, current: false },
-  { name: 'Invoices', href: '/invoices', icon: Receipt, current: false },
-  { name: 'Clients', href: '/clients', icon: Users, current: false },
-  { name: 'Tasks', href: '/tasks', icon: CheckSquare, current: false },
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Contracts', href: '/contracts', icon: FileText },
+  { name: 'Invoices', href: '/invoices', icon: Receipt },
+  { name: 'Clients', href: '/clients', icon: Users },
+  { name: 'Tasks', href: '/tasks', icon: CheckSquare },
 ];
 
 export function Sidebar() {
   const { walletAddress } = useAppContext();
+  const [location] = useLocation();
 
   return (
     <div className="hidden lg:block w-64 bg-deep-navy text-pearl-white min-h-screen fixed left-0 top-0 z-40">
@@ -29,19 +31,20 @@ export function Sidebar() {
         <nav className="space-y-2">
           {navigation.map((item) => {
             const Icon = item.icon;
+            const isActive = location === item.href;
             return (
-              <a
+              <Link
                 key={item.name}
                 href={item.href}
                 className={`flex items-center space-x-3 p-3 rounded-xl transition-all ${
-                  item.current
+                  isActive
                     ? 'bg-ocean-blue text-pearl-white'
                     : 'text-moon-gray hover:bg-ocean-blue/20 hover:text-pearl-white'
                 }`}
               >
                 <Icon className="w-5 h-5" />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             );
           })}
         </nav>
