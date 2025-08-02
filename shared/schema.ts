@@ -87,6 +87,7 @@ export const sessions = pgTable(
  */
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  googleId: varchar("google_id").unique(),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -94,7 +95,6 @@ export const users = pgTable("users", {
   walletAddress: varchar("wallet_address").unique(),
   username: varchar("username").unique(),
   passwordHash: varchar("password_hash"),
-  googleId: varchar("google_id").unique(), // Added for Google OAuth
   bio: text("bio"),
   isEmailVerified: boolean("is_email_verified").default(false),
   isWalletVerified: boolean("is_wallet_verified").default(false),
