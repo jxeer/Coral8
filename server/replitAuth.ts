@@ -121,9 +121,13 @@ export async function setupAuth(app: Express) {
       (req.session as any).codeVerifier = codeVerifier;
       
       // Build authorization URL with PKCE parameters
+      const redirectUri = `https://${req.hostname}/oauth2callback`;
+      console.log("Using redirect URI:", redirectUri);
+      console.log("Using client ID:", process.env.REPL_ID);
+      
       const authUrl = client.buildAuthorizationUrl(config, {
         client_id: process.env.REPL_ID!,
-        redirect_uri: `https://${req.hostname}/oauth2callback`,
+        redirect_uri: redirectUri,
         scope: "openid email profile",
         response_type: "code",
         prompt: "login",
