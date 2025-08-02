@@ -1,5 +1,4 @@
 import * as client from "openid-client";
-import { Strategy, type VerifyFunction } from "openid-client/passport";
 
 import passport from "passport";
 import session from "express-session";
@@ -87,57 +86,70 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  const config = await getOidcConfig();
+  // Simple serialization for development
+  passport.serializeUser((user: any, cb) => cb(null, user));
+  passport.deserializeUser((user: any, cb) => cb(null, user));
 
-  const verify: VerifyFunction = async (
-    tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-    verified: passport.AuthenticateCallback
-  ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
-  };
-
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
-  }
-
-  passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
-
-  app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
+  // Manual OAuth flow instead of passport strategy
+  app.get("/api/login", async (req, res) => {
+    try {
+      const config = await getOidcConfig();
+      const authUrl = client.buildAuthorizationUrl(config, {
+        client_id: process.env.REPL_ID!,
+        redirect_uri: `${req.protocol}://${req.hostname}/api/callback`,
+        scope: "openid email profile",
+        response_type: "code",
+        prompt: "login",
+      });
+      res.redirect(authUrl.href);
+    } catch (error) {
+      console.error("Auth setup error:", error);
+      res.status(500).json({ message: "Authentication setup failed" });
+    }
   });
 
-  app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/login",
-    })(req, res, next);
+  app.get("/api/callback", async (req, res) => {
+    try {
+      const config = await getOidcConfig();
+      const { code } = req.query;
+      
+      if (!code) {
+        return res.redirect("/login?error=no_code");
+      }
+
+      const tokens = await client.authorizationCodeGrant(config, {
+        client_id: process.env.REPL_ID!,
+        code: code as string,
+        redirect_uri: `${req.protocol}://${req.hostname}/api/callback`,
+      });
+
+      const claims = tokens.claims();
+      const user = { claims, tokens };
+      
+      // Store user in session
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.redirect("/login?error=session_failed");
+        }
+        
+        // Upsert user in database
+        upsertUser(claims).catch(console.error);
+        
+        res.redirect("/");
+      });
+    } catch (error) {
+      console.error("Callback error:", error);
+      res.redirect("/login?error=auth_failed");
+    }
   });
 
   app.get("/api/logout", (req, res) => {
-    req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
-      );
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+      }
+      res.redirect("/");
     });
   });
 }
