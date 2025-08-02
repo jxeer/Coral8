@@ -36,6 +36,57 @@ Preferred communication style: Simple, everyday language.
 - **Mobile Optimization**: All features mobile-first with touch gestures and PWA capabilities
 - **User Experience**: Professional mobile app experience with loading states, visual feedback, and smooth transitions
 
+## Code Documentation Standards
+
+**Established**: August 2, 2025
+
+### File-Level Comments
+All major components and utilities should include:
+- Purpose and functionality overview
+- Key features and capabilities
+- Design patterns or architectural notes
+- Dependencies and integration points
+- Troubleshooting references where applicable
+
+### Function-Level Comments
+- Complex business logic explanations
+- Parameter descriptions for non-obvious inputs
+- Return value descriptions
+- Side effects or state changes
+- Error handling approaches
+
+### Code Quality Standards
+- Comprehensive comments for OAuth and authentication flows
+- Mobile-specific implementations documented
+- Token economics calculations explained
+- Database schema changes documented
+- API endpoint purposes and security requirements noted
+
+## OAuth Troubleshooting Resources
+
+**Created**: Comprehensive troubleshooting plan in `OAUTH_TROUBLESHOOTING_PLAN.md`
+- Step-by-step debugging process
+- Configuration verification checklist
+- Alternative authentication options
+- Expected timeline and success metrics
+
+## Next Session Priorities
+
+1. **OAuth Resolution** (1-2 hours)
+   - Follow troubleshooting plan
+   - Fix redirect URI configuration
+   - Test complete authentication flow
+
+2. **Code Documentation** (ongoing)
+   - Add comprehensive comments to all major files
+   - Document token economics calculations
+   - Explain mobile optimization techniques
+
+3. **Feature Enhancement** (as needed)
+   - Complete any remaining demo features
+   - Add real-time data connections
+   - Implement advanced mobile gestures
+
 # System Architecture
 
 ## Frontend Architecture

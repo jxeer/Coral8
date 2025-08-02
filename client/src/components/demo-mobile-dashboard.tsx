@@ -4,6 +4,24 @@
  * Showcases mobile features without dependencies on external contexts
  */
 
+/**
+ * Demo Mobile Dashboard Component
+ * 
+ * This file provides a comprehensive mobile-first dashboard demo for the Coral8 application.
+ * It showcases the labor tracking, token economics, governance voting, and marketplace features
+ * in a fully interactive mobile interface without requiring authentication.
+ * 
+ * Key Features:
+ * - Interactive labor logging with multiplier calculations
+ * - Three-tier COW token system display and transfers
+ * - Governance voting with real-time feedback
+ * - Community marketplace browsing and selling
+ * - Touch gesture navigation between sections
+ * - Elegant toast notification system
+ * 
+ * Design: Oceanic Yemaya-inspired theme with seafoam, ocean blues, and teal colors
+ */
+
 import { useState, createContext, useContext } from "react";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useTouchGestures } from "../hooks/use-touch-gestures";
