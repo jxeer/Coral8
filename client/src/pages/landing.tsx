@@ -119,7 +119,7 @@ export function Landing() {
             </div>
             <h3 className="text-2xl font-bold text-pearl-white mb-4">Blockchain Connected</h3>
             <p className="text-moon-gray leading-relaxed">
-              Connect your MetaMask wallet to bridge on-chain and off-chain activities in the Cowrie ecosystem.
+              Bridge on-chain and off-chain activities in the Cowrie ecosystem with secure wallet integration.
             </p>
           </div>
 

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { WaveAnimation } from "@/components/wave-animation";
-import { ArrowRight, Wallet } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function AuthLogin() {
   const handleReplitSignIn = () => {
@@ -45,26 +45,8 @@ export default function AuthLogin() {
             Sign in with Google <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-ocean-teal/20" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-pearl-white px-2 text-moon-gray">Or connect wallet later</span>
-            </div>
-          </div>
-          
-          <Button 
-            onClick={handleMetaMaskConnect}
-            variant="outline" 
-            className="w-full border-ocean-teal text-ocean-teal hover:bg-ocean-teal hover:text-white"
-          >
-            <Wallet className="w-4 h-4 mr-2" />
-            Connect MetaMask (Optional)
-          </Button>
-          
           <p className="text-xs text-center text-moon-gray mt-4">
-            After signing in, you can optionally connect your MetaMask wallet for blockchain features
+            Join the Cowrie ecosystem to start logging labor and earning COW tokens
           </p>
         </CardContent>
       </Card>
