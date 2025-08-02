@@ -19,12 +19,15 @@ The "invalid_request" error typically indicates:
 2. **Client Configuration**: The OAuth client may not be properly configured in Replit's system
 3. **Domain Validation**: The request domain may not be whitelisted for this client
 
-## Resolution Required
-This requires OAuth client configuration in the Replit console:
-1. Navigate to Replit OAuth client settings
-2. Verify redirect URI is properly configured
-3. Ensure domain is whitelisted
-4. Check client permissions and scopes
+## Resolution Required - SOLUTION FOUND
+Based on Replit documentation, the issue is redirect URI mismatch. Fix steps:
+
+1. **Get Correct Redirect URI**: Run `echo "https://$REPLIT_DEV_DOMAIN/oauth2callback"` in shell
+2. **Update OAuth Client Settings**: The redirect URI in your OAuth client configuration must exactly match: `https://fb43126d-e0fa-4432-997c-ea52b6574f1f-00-10zpw6t9x7t5h.worf.replit.dev/oauth2callback`
+3. **Verify Configuration**: Ensure the authorized redirect URI in your OAuth provider matches the domain format
+4. **Deploy Considerations**: If deploying, also add `https://YOUR_APP_DOMAIN/oauth2callback` to authorized URIs
+
+The error occurs because the redirect URI in the OAuth client doesn't exactly match the one the application is using.
 
 ## Temporary Solution
 For development purposes, the authentication system has been documented and prepared. Once OAuth client configuration is resolved, authentication will work seamlessly.
