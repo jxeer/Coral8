@@ -165,6 +165,33 @@ export async function setupGoogleAuth(app: Express) {
     })(req, res, next);
   });
 
+  // Direct login route for existing user
+  app.post("/auth/google/direct-login", async (req, res) => {
+    try {
+      const { googleId } = req.body;
+      if (!googleId) {
+        return res.status(400).json({ message: "Google ID required" });
+      }
+
+      const user = await storage.getUserByGoogleId?.(googleId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Manually create session
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Direct login error:", err);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        res.json({ message: "Login successful", user });
+      });
+    } catch (error) {
+      console.error("Direct login error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/auth/google/callback", (req, res, next) => {
     console.log("Google OAuth callback received with query:", req.query);
     passport.authenticate("google", (err: any, user: any) => {
