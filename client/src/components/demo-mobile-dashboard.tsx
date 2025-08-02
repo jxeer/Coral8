@@ -50,6 +50,8 @@ type MobileDashboardSection = 'overview' | 'labor' | 'balance' | 'governance' | 
 
 export function DemoMobileDashboard() {
   const [activeSection, setActiveSection] = useState<MobileDashboardSection>('overview');
+  const [isLogging, setIsLogging] = useState(false);
+  const [selectedLaborType, setSelectedLaborType] = useState<string>('');
   const isMobile = useIsMobile();
 
   // Touch gesture handling for section navigation
@@ -151,13 +153,51 @@ export function DemoMobileDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm">Care Work</Button>
-                    <Button variant="outline" size="sm">Teaching</Button>
-                    <Button variant="outline" size="sm">Art Creation</Button>
-                    <Button variant="outline" size="sm">Community</Button>
+                    {['Care Work', 'Teaching', 'Art Creation', 'Community'].map((type) => (
+                      <Button
+                        key={type}
+                        variant={selectedLaborType === type ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedLaborType(type)}
+                        className={selectedLaborType === type ? "bg-ocean-teal text-white" : ""}
+                      >
+                        {type}
+                      </Button>
+                    ))}
                   </div>
-                  <Button className="w-full bg-ocean-teal text-white">
-                    Start Logging
+                  
+                  {selectedLaborType && (
+                    <div className="bg-seafoam/10 p-4 rounded-lg">
+                      <p className="text-sm text-deep-navy mb-2">
+                        Selected: <strong>{selectedLaborType}</strong>
+                      </p>
+                      <p className="text-xs text-moon-gray">
+                        Multiplier: {selectedLaborType === 'Care Work' ? '2.0x' : selectedLaborType === 'Teaching' ? '1.9x' : selectedLaborType === 'Art Creation' ? '1.8x' : '1.7x'} COW tokens per hour
+                      </p>
+                    </div>
+                  )}
+                  
+                  <Button 
+                    className="w-full bg-ocean-teal hover:bg-ocean-blue text-white disabled:opacity-50"
+                    disabled={!selectedLaborType || isLogging}
+                    onClick={() => {
+                      if (selectedLaborType) {
+                        setIsLogging(true);
+                        setTimeout(() => {
+                          setIsLogging(false);
+                          alert(`✓ Demo: Started logging ${selectedLaborType}!\n\nIn a real app, this would:\n• Track your time automatically\n• Calculate COW tokens with ${selectedLaborType === 'Care Work' ? '2.0x' : selectedLaborType === 'Teaching' ? '1.9x' : '1.8x'} multiplier\n• Store progress in your labor history\n• Update your token balance in real-time`);
+                        }, 2000);
+                      }
+                    }}
+                  >
+                    {isLogging ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Starting...</span>
+                      </div>
+                    ) : (
+                      "Start Logging"
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -173,19 +213,37 @@ export function DemoMobileDashboard() {
                 <CardTitle>COW Token Balance</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-ocean-blue">1,247</div>
-                    <div className="text-sm text-moon-gray">COW1</div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="bg-ocean-blue/10 p-3 rounded-lg">
+                      <div className="text-2xl font-bold text-ocean-blue">1,247</div>
+                      <div className="text-sm text-moon-gray">COW1</div>
+                      <div className="text-xs text-moon-gray">Basic Labor</div>
+                    </div>
+                    <div className="bg-ocean-teal/10 p-3 rounded-lg">
+                      <div className="text-2xl font-bold text-ocean-teal">892</div>
+                      <div className="text-sm text-moon-gray">COW2</div>
+                      <div className="text-xs text-moon-gray">Cultural Work</div>
+                    </div>
+                    <div className="bg-seafoam/10 p-3 rounded-lg">
+                      <div className="text-2xl font-bold text-seafoam">156</div>
+                      <div className="text-sm text-moon-gray">COW3</div>
+                      <div className="text-xs text-moon-gray">Governance</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-ocean-teal">892</div>
-                    <div className="text-sm text-moon-gray">COW2</div>
+                  
+                  <div className="bg-gradient-to-r from-ocean-blue/5 to-seafoam/5 p-4 rounded-lg">
+                    <h4 className="font-semibold text-deep-navy mb-2">Total Value</h4>
+                    <div className="text-2xl font-bold text-ocean-blue">$2,847.50</div>
+                    <div className="text-sm text-moon-gray">Estimated USD value</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-seafoam">156</div>
-                    <div className="text-sm text-moon-gray">COW3</div>
-                  </div>
+                  
+                  <Button 
+                    className="w-full bg-seafoam hover:bg-ocean-teal text-deep-navy"
+                    onClick={() => alert('Demo: Token transfer feature! In a real app, you could send COW tokens to community members or exchange them in the marketplace.')}
+                  >
+                    Transfer Tokens
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -200,10 +258,41 @@ export function DemoMobileDashboard() {
                 <CardTitle>Community Voting</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-moon-gray mb-4">Participate in community governance</p>
-                <Button className="w-full bg-ocean-blue text-white">
-                  View Proposals
-                </Button>
+                <div className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-amber-800">Active Proposal</h4>
+                      <Badge className="bg-amber-100 text-amber-800">Voting Open</Badge>
+                    </div>
+                    <p className="text-sm text-amber-700 mb-3">
+                      "Should we increase care work multiplier to 2.2x?"
+                    </p>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => alert('Demo: Voted YES! In a real app, your vote would be recorded on-chain and you\'d earn COW3 governance tokens.')}
+                      >
+                        Vote Yes
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                        onClick={() => alert('Demo: Voted NO! Your governance participation earns you COW3 tokens.')}
+                      >
+                        Vote No
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full bg-ocean-blue hover:bg-deep-navy text-white"
+                    onClick={() => alert('Demo: View all proposals! This would show the complete governance dashboard with voting history and proposal creation.')}
+                  >
+                    View All Proposals
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -217,10 +306,40 @@ export function DemoMobileDashboard() {
                 <CardTitle>Community Marketplace</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-moon-gray mb-4">Trade goods and services with COW tokens</p>
-                <Button className="w-full bg-seafoam text-deep-navy">
-                  Browse Items
-                </Button>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="border border-moon-gray/20 p-3 rounded-lg">
+                      <div className="w-full h-16 bg-gradient-to-br from-seafoam/20 to-ocean-teal/20 rounded mb-2 flex items-center justify-center">
+                        <span className="text-xs text-moon-gray">Handmade Art</span>
+                      </div>
+                      <p className="text-sm font-medium text-deep-navy">Cultural Craft</p>
+                      <p className="text-xs text-ocean-teal font-semibold">45 COW</p>
+                    </div>
+                    <div className="border border-moon-gray/20 p-3 rounded-lg">
+                      <div className="w-full h-16 bg-gradient-to-br from-ocean-blue/20 to-deep-navy/20 rounded mb-2 flex items-center justify-center">
+                        <span className="text-xs text-moon-gray">Care Service</span>
+                      </div>
+                      <p className="text-sm font-medium text-deep-navy">Elder Care</p>
+                      <p className="text-xs text-ocean-teal font-semibold">120 COW</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 bg-seafoam hover:bg-ocean-teal text-deep-navy"
+                      onClick={() => alert('Demo: Browse marketplace! This would show all available items and services you can purchase with COW tokens.')}
+                    >
+                      Browse All
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 border-seafoam text-seafoam hover:bg-seafoam/10"
+                      onClick={() => alert('Demo: Sell items! This would let you list your own goods or services for COW tokens.')}
+                    >
+                      Sell Item
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -314,13 +433,44 @@ export function DemoMobileDashboard() {
 // Mobile Navigation for Demo
 export function DemoMobileNavigation() {
   const [location] = useLocation();
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const navigation = [
-    { name: 'Dashboard', icon: Home, href: '/demo', id: 'dashboard' },
-    { name: 'Contracts', icon: FileText, href: '/demo', id: 'contracts' },
-    { name: 'Invoices', icon: DollarSign, href: '/demo', id: 'invoices' },
-    { name: 'Clients', icon: Users, href: '/demo', id: 'clients' },
-    { name: 'Tasks', icon: ShoppingBag, href: '/demo', id: 'tasks' },
+    { 
+      name: 'Dashboard', 
+      icon: Home, 
+      href: '/demo', 
+      id: 'dashboard',
+      action: () => alert('Demo: Dashboard navigation! This would take you to the main dashboard view.')
+    },
+    { 
+      name: 'Contracts', 
+      icon: FileText, 
+      href: '/demo', 
+      id: 'contracts',
+      action: () => alert('Demo: Contracts page! This would show your labor contracts and agreements.')
+    },
+    { 
+      name: 'Invoices', 
+      icon: DollarSign, 
+      href: '/demo', 
+      id: 'invoices',
+      action: () => alert('Demo: Invoices page! This would display your earnings and payment history.')
+    },
+    { 
+      name: 'Clients', 
+      icon: Users, 
+      href: '/demo', 
+      id: 'clients',
+      action: () => alert('Demo: Clients page! This would show your community connections and collaboration partners.')
+    },
+    { 
+      name: 'Tasks', 
+      icon: ShoppingBag, 
+      href: '/demo', 
+      id: 'tasks',
+      action: () => alert('Demo: Tasks page! This would display your active labor logging and marketplace activities.')
+    },
   ];
 
   return (
@@ -328,12 +478,15 @@ export function DemoMobileNavigation() {
       <div className="flex justify-around py-3 px-2">
         {navigation.map((item) => {
           const Icon = item.icon;
-          const isActive = item.id === 'dashboard'; // Always show dashboard as active in demo
+          const isActive = activeTab === item.id;
           
           return (
-            <Link
+            <button
               key={item.id}
-              href={item.href}
+              onClick={() => {
+                setActiveTab(item.id);
+                item.action();
+              }}
               className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 ${
                 isActive 
                   ? 'text-seafoam bg-seafoam/10 scale-105' 
@@ -342,7 +495,7 @@ export function DemoMobileNavigation() {
             >
               <Icon className="w-5 h-5 mb-1" />
               <span className="text-xs font-medium">{item.name}</span>
-            </Link>
+            </button>
           );
         })}
       </div>
