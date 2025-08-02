@@ -4,12 +4,16 @@ import cookieParser from "cookie-parser";
 import { storage } from "./storage";
 import { authService } from "./auth";
 import { authenticateToken, optionalAuth, type AuthenticatedRequest } from "./middleware";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { loginSchema, registerSchema, walletLoginSchema } from "@shared/schema";
 import { insertLaborLogSchema, insertVoteSchema } from "@shared/schema";
 import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
+  
+  // Setup Replit Auth middleware
+  await setupAuth(app);
 
   // Authentication routes
   app.post('/api/auth/register', async (req, res) => {
@@ -83,21 +87,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(req.user);
   });
   
-  // Get current user (fallback to default for testing)
-  app.get("/api/user", optionalAuth, async (req: AuthenticatedRequest, res) => {
+  // Replit Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      if (req.user) {
-        res.json(req.user);
-      } else {
-        // Fallback to default user if not authenticated (for backward compatibility)
-        const user = await storage.getUser("default-user");
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-        res.json(user);
-      }
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching user" });
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Wallet connection for authenticated users  
+  app.post('/api/auth/connect-wallet', isAuthenticated, async (req: any, res) => {
+    try {
+      const data = walletLoginSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const result = await authService.connectWallet(userId, data);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 

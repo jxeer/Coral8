@@ -1,22 +1,36 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Session storage table.
+// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User storage table.
+// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").unique(),
-  email: text("email").unique(),
-  passwordHash: text("password_hash"),
-  walletAddress: text("wallet_address").unique(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  profileImage: text("profile_image"),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  walletAddress: varchar("wallet_address").unique(),
+  username: varchar("username").unique(),
+  passwordHash: varchar("password_hash"),
   bio: text("bio"),
   isEmailVerified: boolean("is_email_verified").default(false),
   isWalletVerified: boolean("is_wallet_verified").default(false),
   lastLogin: timestamp("last_login"),
-  authMethod: text("auth_method").notNull().default("password"), // password, wallet, both
+  authMethod: text("auth_method").notNull().default("replit"), // replit, wallet, both
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -146,14 +160,7 @@ export type MarketplaceItem = typeof marketplaceItems.$inferSelect;
 
 export type UserStats = typeof userStats.$inferSelect;
 
-// Authentication tables
-export const sessions = pgTable("sessions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// Note: sessions table already defined above for Replit Auth
 
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

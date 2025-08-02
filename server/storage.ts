@@ -13,8 +13,9 @@ import { users, laborLogs, tokenBalances, governanceProposals, votes, marketplac
 import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
+  // Users (IMPORTANT - these methods are mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   getUserByWallet(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
@@ -318,10 +319,25 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // Users
+  // Users (IMPORTANT - these methods are mandatory for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return user || undefined;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
   }
 
   async getUserByWallet(walletAddress: string): Promise<User | undefined> {

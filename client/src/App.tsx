@@ -4,46 +4,53 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppProvider } from "./contexts/app-context";
-import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/useAuth";
+import { Sidebar } from "@/components/sidebar";
 import Dashboard from "./pages/dashboard";
 import Contracts from "./pages/contracts";
 import Invoices from "./pages/invoices";
 import Clients from "./pages/clients";
 import Tasks from "./pages/tasks";
-import Login from "./pages/login";
+import Login from "./pages/auth-login";
+import { Landing } from "./pages/landing";
 import NotFound from "@/pages/not-found";
 
-function AuthenticatedRouter() {
+function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-ocean-light via-seafoam-light to-teal-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-ocean-deep to-teal-600 rounded-full animate-pulse" />
-          </div>
-          <p className="text-ocean-deep font-medium">Loading Coral8...</p>
-        </div>
+      <div className="min-h-screen bg-deep-navy flex items-center justify-center">
+        <div className="text-pearl-white">Loading...</div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return <Login />;
-  }
-
   return (
-    <AppProvider>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/contracts" component={Contracts} />
-        <Route path="/invoices" component={Invoices} />
-        <Route path="/clients" component={Clients} />
-        <Route path="/tasks" component={Tasks} />
-        <Route component={NotFound} />
-      </Switch>
-    </AppProvider>
+    <Switch>
+      {isLoading || !isAuthenticated ? (
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/login" component={Login} />
+        </>
+      ) : (
+        <>
+          <AppProvider>
+            <div className="min-h-screen bg-deep-navy">
+              <Sidebar />
+              <main className="lg:ml-64 min-h-screen">
+                <Route path="/" component={Dashboard} />
+                <Route path="/contracts" component={Contracts} />
+                <Route path="/invoices" component={Invoices} />
+                <Route path="/clients" component={Clients} />
+                <Route path="/tasks" component={Tasks} />
+              </main>
+            </div>
+          </AppProvider>
+        </>
+      )}
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
@@ -51,10 +58,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <AuthenticatedRouter />
-        </AuthProvider>
+        <Router />
+        <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
   );
