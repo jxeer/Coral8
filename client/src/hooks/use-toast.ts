@@ -1,3 +1,10 @@
+/**
+ * Toast Notification System
+ * Provides global state management for toast notifications throughout Coral8
+ * Implements reducer pattern for consistent notification handling
+ * Integrated with shadcn/ui toast components for consistent styling
+ */
+
 import * as React from "react"
 
 import type {
@@ -5,8 +12,9 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+// Configuration constants
+const TOAST_LIMIT = 1 // Maximum number of toasts shown simultaneously
+const TOAST_REMOVE_DELAY = 1000000 // Delay before removing dismissed toasts
 
 type ToasterToast = ToastProps & {
   id: string

@@ -1,9 +1,20 @@
+/**
+ * Authentication Login Page Component
+ * Provides sign-in interface for unauthenticated users
+ * Features Google OAuth through Replit Auth integration
+ * Uses oceanic Yemaya-inspired design with wave animations
+ */
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { WaveAnimation } from "@/components/wave-animation";
 import { ArrowRight } from "lucide-react";
 
 export default function AuthLogin() {
+  /**
+   * Initiates OAuth flow by redirecting to Replit Auth endpoint
+   * Triggers PKCE-secured authentication with Google provider
+   */
   const handleReplitSignIn = () => {
     window.location.href = "/api/login";
   };

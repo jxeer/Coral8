@@ -22,10 +22,13 @@ if (!process.env.REPLIT_DOMAINS) {
  */
 const getOidcConfig = memoize(
   async () => {
-    return await client.discovery(
+    console.log("Discovering OIDC config for client:", process.env.REPL_ID);
+    const config = await client.discovery(
       new URL("https://replit.com/oidc"),
       process.env.REPL_ID!
     );
+    console.log("OIDC config discovered successfully");
+    return config;
   },
   { maxAge: 3600 * 1000 } // Cache for 1 hour
 );

@@ -1,10 +1,18 @@
-// Labor Index Table for calculating COW token rewards
+/**
+ * Labor Index and Token Economics System
+ * Implements culturally-rooted multipliers for different types of labor
+ * Honors ancestral wisdom by providing higher rewards for cultural preservation work
+ * Central to Coral8's mission of valuing traditionally undercompensated labor
+ */
+
+// Labor Index Table: Multipliers for calculating COW token rewards
+// Higher multipliers reflect cultural and community value of different labor types
 export const LABOR_INDEX: Record<string, number> = {
   "Art Creation": 1.8,
-  "Care Work": 2.0, // Higher multiplier to reflect value
+  "Care Work": 2.0, // Higher multiplier to reflect traditionally undervalued work
   "Teaching": 1.9,
   "Community Building": 1.7,
-  "Cultural Preservation": 2.1, // Highest multiplier for cultural work
+  "Cultural Preservation": 2.1, // Highest multiplier - core to Coral8 mission
   "Environmental Work": 1.6,
   "Healing & Wellness": 1.8,
   "Traditional Crafts": 1.9,
@@ -12,12 +20,24 @@ export const LABOR_INDEX: Record<string, number> = {
   "Food Preparation": 1.5,
 };
 
+/**
+ * Retrieves the labor multiplier for a specific type of work
+ * @param laborType - The type of labor being performed
+ * @returns Multiplier value, defaulting to 1.0 for unrecognized types
+ */
 export function getLaborMultiplier(laborType: string): number {
   return LABOR_INDEX[laborType] || 1.0; // Default multiplier if type not found
 }
 
+/**
+ * Calculates COW tokens earned based on hours worked and labor type multiplier
+ * Uses base rate of 11 COW tokens per hour (honoring cultural significance)
+ * @param hoursWorked - Number of hours of labor performed
+ * @param multiplier - Labor type multiplier from LABOR_INDEX
+ * @returns Total COW tokens earned, rounded to 2 decimal places
+ */
 export function calculateCOWTokens(hoursWorked: number, multiplier: number): number {
-  const baseRate = 11; // Base COW tokens per hour
+  const baseRate = 11; // Base COW tokens per hour (culturally significant number)
   return Math.round((hoursWorked * baseRate * multiplier) * 100) / 100; // Round to 2 decimal places
 }
 
