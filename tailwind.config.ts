@@ -61,6 +61,14 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
+        // Custom Coral8 oceanic colors
+        "ocean-blue": "var(--ocean-blue)",
+        "ocean-teal": "var(--ocean-teal)",
+        "seafoam": "var(--seafoam)",
+        "deep-navy": "var(--deep-navy)",
+        "shell-cream": "var(--shell-cream)",
+        "moon-gray": "var(--moon-gray)",
+        "pearl-white": "var(--pearl-white)",
       },
       keyframes: {
         "accordion-down": {

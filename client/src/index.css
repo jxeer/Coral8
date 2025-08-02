@@ -3,49 +3,57 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(20, 14.3%, 4.1%);
-  --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --background: hsl(45, 25%, 98%);
+  --foreground: hsl(216, 71%, 7%);
+  --muted: hsl(210, 40%, 94%);
+  --muted-foreground: hsl(215, 16%, 47%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  --border: hsl(20, 5.9%, 90%);
-  --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(60, 4.8%, 95.9%);
-  --secondary-foreground: hsl(24, 9.8%, 10%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
+  --popover-foreground: hsl(216, 71%, 7%);
+  --card: hsl(210, 40%, 98%);
+  --card-foreground: hsl(216, 71%, 7%);
+  --border: hsl(192, 45%, 90%);
+  --input: hsl(192, 45%, 90%);
+  --primary: hsl(192, 90%, 36%);
+  --primary-foreground: hsl(210, 100%, 98%);
+  --secondary: hsl(210, 40%, 94%);
+  --secondary-foreground: hsl(216, 71%, 15%);
+  --accent: hsl(210, 40%, 94%);
+  --accent-foreground: hsl(216, 71%, 15%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(60, 9%, 98%);
+  --ring: hsl(216, 71%, 7%);
   --radius: 0.5rem;
+  
+  /* Custom Coral8 oceanic colors */
+  --ocean-blue: hsl(192, 90%, 36%);
+  --ocean-teal: hsl(192, 100%, 42%);
+  --seafoam: hsl(192, 79%, 75%);
+  --deep-navy: hsl(216, 71%, 7%);
+  --shell-cream: hsl(45, 25%, 98%);
+  --moon-gray: hsl(215, 16%, 60%);
+  --pearl-white: hsl(210, 100%, 98%);
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
+  --background: hsl(216, 71%, 7%);
   --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
+  --muted: hsl(216, 50%, 12%);
+  --muted-foreground: hsl(215, 16%, 65%);
+  --popover: hsl(216, 71%, 7%);
   --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
+  --card: hsl(216, 71%, 7%);
   --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(240, 3.7%, 15.9%);
+  --border: hsl(216, 50%, 12%);
+  --input: hsl(216, 50%, 12%);
+  --primary: hsl(192, 90%, 36%);
+  --primary-foreground: hsl(210, 100%, 98%);
+  --secondary: hsl(216, 50%, 12%);
   --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
+  --accent: hsl(216, 50%, 12%);
   --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive: hsl(0, 63%, 31%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
-  --radius: 0.5rem;
+  --ring: hsl(216, 34%, 84%);
 }
 
 @layer base {
@@ -55,5 +63,101 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-color: hsl(var(--shell-cream));
+  }
+}
+
+@layer utilities {
+  /* Custom oceanic colors */
+  .text-ocean-blue {
+    color: hsl(192, 90%, 36%);
+  }
+  
+  .text-ocean-teal {
+    color: hsl(192, 100%, 42%);
+  }
+  
+  .text-seafoam {
+    color: hsl(192, 79%, 75%);
+  }
+  
+  .text-deep-navy {
+    color: hsl(216, 71%, 7%);
+  }
+  
+  .text-moon-gray {
+    color: hsl(215, 16%, 60%);
+  }
+  
+  .text-pearl-white {
+    color: hsl(210, 100%, 98%);
+  }
+  
+  .bg-ocean-blue {
+    background-color: hsl(192, 90%, 36%);
+  }
+  
+  .bg-ocean-teal {
+    background-color: hsl(192, 100%, 42%);
+  }
+  
+  .bg-seafoam {
+    background-color: hsl(192, 79%, 75%);
+  }
+  
+  .bg-deep-navy {
+    background-color: hsl(216, 71%, 7%);
+  }
+  
+  .bg-shell-cream {
+    background-color: hsl(45, 25%, 98%);
+  }
+  
+  .bg-moon-gray {
+    background-color: hsl(215, 16%, 60%);
+  }
+  
+  .bg-pearl-white {
+    background-color: hsl(210, 100%, 98%);
+  }
+  
+  .border-ocean-blue {
+    border-color: hsl(192, 90%, 36%);
+  }
+  
+  .border-ocean-teal {
+    border-color: hsl(192, 100%, 42%);
+  }
+  
+  .border-seafoam {
+    border-color: hsl(192, 79%, 75%);
+  }
+  
+  /* Wave animations */
+  @keyframes wave {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .wave-animation {
+    animation: wave 3s ease-in-out infinite;
+  }
+  
+  .flowing-bg {
+    background: linear-gradient(-45deg, hsl(192, 79%, 75%), hsl(192, 100%, 42%), hsl(192, 90%, 36%), hsl(216, 71%, 7%));
+    background-size: 400% 400%;
+    animation: flow 15s ease infinite;
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 }
