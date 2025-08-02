@@ -1,0 +1,139 @@
+
+
+    Build a full-stack web + mobile-friendly app called Coral8, which is the off-chain interface for the Cowrie Coin blockchain ecosystem. It should allow users to log culturally rooted labor, earn COW tokens (COW1, COW2, COW3), view their balances, check decay timers, vote on governance proposals, and browse a community marketplace.
+
+⚙️ Functionality Requirements
+
+Frontend (React + Tailwind or React Native Web for mobile optimization):
+
+    A clean, dashboard-style interface like the first image provided
+
+    Sidebar Navigation:
+
+        Dashboard
+
+        Contracts
+
+        Invoices
+
+        Clients
+
+        Tasks
+
+    Main dashboard cards:
+
+        Focus Tracker (complete tasks, add expertise)
+
+        Tribe (invite members, track community growth)
+
+        Emotion Tracker
+
+        Money (Monthly COW earned + financial overview)
+
+        Attention (visibility and metrics)
+
+        Time (scheduled events, COW earning)
+
+        Influence (influence score / reputation)
+
+    Labor Logging Screen (based on mobile wireframe #2):
+
+        Wallet address preview
+
+        Input form to log new labor:
+
+            Dropdown for labor type (art, care work, teaching, etc.)
+
+            Hours worked
+
+            Optional “community attestation” upload
+
+        On submit: calls a backend API that computes COW token output using a Labor Index table
+
+    My Balance Section:
+
+        Shows balances of COW1, COW2, COW3
+
+        Decay timer shows “time until decay” or displays “burned history”
+
+    Governance Section:
+
+        View proposals
+
+        Vote on-chain via wallet (or simulate off-chain for now)
+
+    Marketplace Section:
+
+        Browse offers
+
+        Future: Add support for vendor storefronts using ERC-6551 token-bound accounts
+
+🔗 Blockchain Integration (Simulated for Now)
+
+Set up mocked smart contract endpoints (or mock interaction with real contracts later):
+
+    verifyAndMint(worker, hoursWorked, multiplier, proofHash) simulates token minting on-chain
+
+    decay() checks inactivity and burns 1% of idle balances
+
+    Maintain local state to simulate COW balances and decay history
+
+    Simulate staking and DAO voting via local data for now
+
+Later versions can integrate:
+
+    MetaMask mobile / WalletConnect
+
+    Coral8Oracle contract on Optimism Sepolia
+
+🎨 Stylistic Guidance
+
+Use an oceanic color palette inspired by the Orisha Yemaya, blending calm, watery, and divine feminine energy. Suggestions:
+
+    Background: soft off-white or shell-cream
+
+    Primary Colors: ocean blue (#0077b6), teal (#00b4d8), seafoam (#90e0ef), deep navy (#03045e)
+
+    Accent: pearlescent silver or moon-gray for subtle UI elements
+
+    Rounded card UI and fluid layout
+
+    Icons and fonts that feel intuitive, gentle, and ceremonial
+
+    Incorporate wave animations or subtle background textures (like flowing water)
+
+📦 Backend Setup (Node.js + Express + Firebase/Supabase)
+
+    Store user profiles, labor logs, timestamps
+
+    Implement a Labor Index Table:
+
+        E.g., “Art Creation: 11 hours x 1.8 = 19.8 COW”
+
+    For each labor log:
+
+        Generate a proofHash (mock Merkle hash for now)
+
+        Call mock verifyAndMint endpoint and update balances
+
+    Track lastActive timestamp per wallet to simulate decay
+
+📱 Mobile Version
+
+Adapt mobile UI to resemble the second image (wireframe):
+
+    Stack modules vertically: Balance → Log Labor → Decay → Governance → Marketplace
+
+    Top bar shows wallet address
+
+    Responsive with touch-friendly buttons and simple forms
+
+📁 Tech Stack
+
+    Frontend: React / React Native Web + Tailwind CSS
+
+    Backend: Express.js + Firebase or Supabase
+
+    Blockchain (mocked now): simulate Coral8Oracle smart contract and CowrieSeries interactions
+
+    State: use React Context or Redux to simulate wallet balances, decay timers, governance state
