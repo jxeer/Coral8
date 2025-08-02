@@ -1,145 +1,56 @@
-# OAuth Troubleshooting Plan for Coral8
+# Google OAuth Troubleshooting Plan
 
 ## Current Status
-- Replit Auth configured with proper OIDC discovery
-- Getting "invalid_request" error during OAuth flow
-- Redirect URI mismatch is the likely cause
-- Demo mode works perfectly as fallback
+- ✅ Google OAuth credentials configured
+- ✅ Redirect URI properly set in Google Cloud Console
+- ✅ OAuth flow initiated successfully 
+- ❌ Browser security blocking Google OAuth popup/redirect
 
-## Identified Issues
+## Issue Analysis
+The "accounts.google.com refused to connect" error indicates:
+1. Browser security policies blocking the OAuth flow
+2. Possible iframe/popup restrictions
+3. CORS or content security policy issues
 
-### 1. Redirect URI Configuration
-**Problem**: OAuth client settings need exact redirect URI match
-**Current Error**: "invalid_request" suggests redirect URI mismatch
+## Immediate Solutions
 
-**Solution Steps**:
-1. Check current domain in Replit console
-2. Verify redirect URI in OAuth client settings
-3. Ensure exact match including protocol (https://)
-4. Update OAuth client configuration if needed
+### Option 1: Direct Link Test
+Try opening the OAuth URL directly in a new tab:
+```
+https://fb43126d-e0fa-4432-997c-ea52b6574f1f-00-10zpw6t9x7t5h.worf.replit.dev/auth/google
+```
 
-### 2. Environment Variables Verification
-**Check These Variables**:
-- `REPLIT_DOMAINS` - should match current domain
-- `REPL_ID` - should match OAuth client ID  
-- `SESSION_SECRET` - verify it's set
-- `DATABASE_URL` - confirm database connection
+### Option 2: Update Button to Open in New Tab
+Modify the sign-in button to open OAuth in a new window to avoid iframe restrictions.
 
-### 3. OAuth Provider Configuration
-**Verify in Replit Auth Dashboard**:
-- Client ID matches REPL_ID
-- Redirect URI exactly matches: `https://[your-domain]/api/callback`
-- Scopes include: openid, email, profile, offline_access
-- Client type set to "Web Application"
-
-## Implementation Plan for Tomorrow
-
-### Phase 1: Debug Current Setup (30 minutes)
-1. **Check Environment Variables**
-   ```bash
-   echo $REPL_ID
-   echo $REPLIT_DOMAINS
-   ```
-
-2. **Verify OAuth Client Settings**
-   - Log into Replit Auth dashboard
-   - Check redirect URI configuration
-   - Verify client ID matches
-
-3. **Test OAuth Flow**
-   - Navigate to `/api/login`
-   - Capture exact error messages
-   - Check browser network tab for detailed errors
-
-### Phase 2: Fix Configuration (45 minutes)
-1. **Update OAuth Client Settings**
-   - Correct redirect URI if needed
-   - Verify all required scopes
-   - Check client secret (if applicable)
-
-2. **Update Environment Variables**
-   - Ensure REPLIT_DOMAINS matches current domain
-   - Verify REPL_ID matches OAuth client ID
-
-3. **Test Database Connection**
-   - Verify PostgreSQL session storage works
-   - Check sessions table exists
-   - Test user creation flow
-
-### Phase 3: Alternative Authentication (if needed)
-If Replit Auth continues to have issues:
-
-1. **Add Google OAuth Direct**
-   - Set up Google OAuth 2.0 client
-   - Implement google-auth-library
-   - Update auth flow to use Google directly
-
-2. **Add MetaMask Integration**
-   - Enhance existing MetaMask connection
-   - Implement wallet-based authentication
-   - Create Web3 user session management
-
-## Testing Checklist
-
-### OAuth Flow Testing
-- [ ] `/api/login` redirects properly
-- [ ] OAuth provider accepts redirect
-- [ ] `/api/callback` processes response
-- [ ] User session created successfully
-- [ ] User data stored in database
-- [ ] Subsequent requests authenticated
-
-### Session Management
-- [ ] Sessions persist across page refreshes
-- [ ] Session data stored in PostgreSQL
-- [ ] Logout clears session properly
-- [ ] Session expiry handled correctly
-
-### Error Handling
-- [ ] Auth errors display user-friendly messages
-- [ ] Failed auth redirects to appropriate page
-- [ ] Network errors handled gracefully
-- [ ] Session expiry triggers re-auth
-
-## Backup Plan: Enhanced Demo Mode
-
-If OAuth issues persist, enhance demo mode with:
-
-1. **Simulated Authentication**
-   - Create demo user profiles
-   - Implement demo session management
-   - Add user switching capability
-
-2. **Feature Completeness**
-   - Full labor logging with persistence
-   - Complete governance voting system
-   - Marketplace with transaction simulation
-   - Token transfer demonstrations
-
-## Code Areas Requiring OAuth Integration
-
-### Server Files
-- `server/replitAuth.ts` - Main OAuth implementation
-- `server/routes.ts` - Protected route middleware
-- `server/storage.ts` - User data management
-
-### Client Files
-- `client/src/hooks/useAuth.ts` - Auth state management
-- `client/src/lib/authUtils.ts` - Auth utility functions
-- `client/src/pages/landing.tsx` - Login/logout UI
+### Option 3: Verify Google Cloud Console Settings
+Double-check in Google Cloud Console:
+- OAuth 2.0 Client ID is configured
+- Authorized redirect URIs includes exact URL
+- OAuth consent screen is properly configured
+- Application domain verification if required
 
 ## Expected Timeline
-- **OAuth Fix**: 1-2 hours if configuration issue
-- **Alternative Auth**: 3-4 hours if Replit Auth can't be resolved
-- **Enhanced Demo**: 2-3 hours as backup implementation
+- Immediate fix: 15-30 minutes
+- Complete testing: Additional 15 minutes
+- Fallback options: Demo mode remains fully functional
 
 ## Success Metrics
-1. Users can log in through Replit Auth successfully
-2. User sessions persist across browser refreshes
-3. Protected routes work correctly
-4. User data saves to database
-5. Logout functionality works properly
+1. User can click "Sign in with Google" button
+2. Redirects to Google OAuth consent screen
+3. User grants permissions
+4. Successfully redirects back to Coral8 dashboard
+5. User session established and authenticated
 
----
+## Alternative Authentication
+If Google OAuth continues to have issues, we can:
+1. Keep demo mode as primary experience
+2. Add traditional email/password authentication
+3. Implement MetaMask wallet connection as secondary auth
+4. Use Replit Auth as backup option
 
-**Note**: All progress and fixes should be documented in `replit.md` for future reference.
+## Next Steps
+1. Test direct OAuth URL access
+2. Modify button behavior if needed
+3. Verify all Google Cloud Console settings
+4. Document successful authentication flow

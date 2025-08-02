@@ -153,16 +153,17 @@ export async function setupGoogleAuth(app: Express) {
   // Google OAuth Routes
   app.get("/auth/google", (req, res, next) => {
     console.log("Starting Google OAuth flow");
+    console.log("Callback URL configured as:", `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}/auth/google/callback`);
     passport.authenticate("google", {
       scope: ["profile", "email"],
     })(req, res, next);
   });
 
   app.get("/auth/google/callback", (req, res, next) => {
-    console.log("Google OAuth callback received");
+    console.log("Google OAuth callback received with query:", req.query);
     passport.authenticate("google", {
       successRedirect: "/",
-      failureRedirect: "/login?error=oauth_failed",
+      failureRedirect: "/?error=oauth_failed",
     })(req, res, next);
   });
 
