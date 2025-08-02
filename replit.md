@@ -71,7 +71,8 @@ Preferred communication style: Simple, everyday language.
 ### Current Status:
 - ✅ GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET provided
 - ✅ Redirect URI properly configured in Google Cloud Console
-- ✅ OAuth flow ready for testing
+- ✅ Implemented popup-based OAuth to bypass iframe restrictions
+- ✅ Enhanced callback handling with automatic window management
 
 ### Troubleshooting Issue:
 Error 400: redirect_uri_mismatch indicates the callback URL in Google Cloud Console doesn't exactly match the configured URL.

@@ -161,9 +161,30 @@ export async function setupGoogleAuth(app: Express) {
 
   app.get("/auth/google/callback", (req, res, next) => {
     console.log("Google OAuth callback received with query:", req.query);
-    passport.authenticate("google", {
-      successRedirect: "/",
-      failureRedirect: "/?error=oauth_failed",
+    passport.authenticate("google", (err: any, user: any) => {
+      if (err || !user) {
+        console.error("OAuth authentication failed:", err);
+        return res.redirect("/?error=oauth_failed");
+      }
+      
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Login error:", loginErr);
+          return res.redirect("/?error=login_failed");
+        }
+        
+        // Close popup and redirect parent window
+        res.send(`
+          <script>
+            if (window.opener) {
+              window.opener.location.href = '/';
+              window.close();
+            } else {
+              window.location.href = '/';
+            }
+          </script>
+        `);
+      });
     })(req, res, next);
   });
 

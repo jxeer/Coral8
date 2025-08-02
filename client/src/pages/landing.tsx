@@ -25,7 +25,10 @@ export function Landing() {
           </div>
           <Button 
             className="bg-seafoam hover:bg-seafoam/90 text-deep-navy"
-            onClick={() => window.location.href = '/auth/google'}
+            onClick={() => {
+              // Open OAuth in new tab to avoid iframe restrictions
+              window.open('/auth/google', '_blank', 'width=500,height=600,scrollbars=yes,resizable=yes');
+            }}
           >
             Sign in with Google <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
@@ -47,7 +50,10 @@ export function Landing() {
             <Button 
               size="lg" 
               className="bg-seafoam hover:bg-seafoam/90 text-deep-navy font-semibold px-8 py-4 text-lg"
-              onClick={() => window.location.href = '/auth/google'}
+              onClick={() => {
+                // Open OAuth in new tab to avoid iframe restrictions
+                window.open('/auth/google', '_blank', 'width=500,height=600,scrollbars=yes,resizable=yes');
+              }}
             >
               Sign in with Google <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
