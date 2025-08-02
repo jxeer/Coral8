@@ -142,8 +142,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // req.user now contains the User object from Google OAuth
-      res.json(req.user);
+      // Handle Google OAuth user data
+      if (req.user && req.user.id) {
+        const user = await storage.getUser(req.user.id);
+        res.json(user);
+      } else {
+        res.status(401).json({ message: "Unauthorized" });
+      }
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });

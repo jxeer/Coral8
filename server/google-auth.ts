@@ -179,11 +179,14 @@ export async function setupGoogleAuth(app: Express) {
           return res.redirect("/?error=login_failed");
         }
         
+        // Store user ID in session for auth check
+        (req.session as any).userId = user.id;
+        
         // Close popup and redirect parent window
         res.send(`
           <script>
             if (window.opener) {
-              window.opener.location.href = '/';
+              window.opener.location.reload();
               window.close();
             } else {
               window.location.href = '/';
