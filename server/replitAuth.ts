@@ -96,7 +96,7 @@ export async function setupAuth(app: Express) {
       const config = await getOidcConfig();
       const authUrl = client.buildAuthorizationUrl(config, {
         client_id: process.env.REPL_ID!,
-        redirect_uri: `https://${req.hostname}/api/callback`,
+        redirect_uri: `https://${req.hostname}/oauth2callback`,
         scope: "openid email profile",
         response_type: "code",
         prompt: "login",
@@ -108,23 +108,31 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  app.get("/api/callback", async (req, res) => {
+  app.get("/oauth2callback", async (req, res) => {
     try {
       const config = await getOidcConfig();
-      const { code } = req.query;
+      const { code, error, error_description } = req.query;
       
+      console.log("Full callback query params:", req.query);
       console.log("Callback received with code:", !!code);
+      console.log("Error in callback:", error, error_description);
+      
+      if (error) {
+        console.error("OAuth error:", error, error_description);
+        return res.redirect(`/?error=${error}&description=${error_description}`);
+      }
       
       if (!code) {
         console.log("No authorization code received");
         return res.redirect("/?error=no_code");
       }
 
-      const tokens = await client.authorizationCodeGrant(config, {
+      const tokens = await client.authorizationCodeGrant(config, new URLSearchParams({
         client_id: process.env.REPL_ID!,
         code: code as string,
-        redirect_uri: `https://${req.hostname}/api/callback`,
-      });
+        redirect_uri: `https://${req.hostname}/oauth2callback`,
+        grant_type: "authorization_code",
+      }));
 
       const claims = tokens.claims();
       console.log("Claims received:", claims?.sub, claims?.email);
