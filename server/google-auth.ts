@@ -109,6 +109,12 @@ export async function setupGoogleAuth(app: Express) {
                 profileImageUrl: profileImageUrl || null,
                 username: email?.split('@')[0] || `user_${googleId}`,
                 authMethod: "google",
+                walletAddress: null,
+                passwordHash: null,
+                bio: null,
+                isEmailVerified: true,
+                isWalletVerified: false,
+                lastLogin: new Date(),
               });
               
               console.log("Created new user:", user.id);
