@@ -94,11 +94,12 @@ export const users = pgTable("users", {
   walletAddress: varchar("wallet_address").unique(),
   username: varchar("username").unique(),
   passwordHash: varchar("password_hash"),
+  googleId: varchar("google_id").unique(), // Added for Google OAuth
   bio: text("bio"),
   isEmailVerified: boolean("is_email_verified").default(false),
   isWalletVerified: boolean("is_wallet_verified").default(false),
   lastLogin: timestamp("last_login"),
-  authMethod: text("auth_method").notNull().default("replit"), // replit, wallet, password, both
+  authMethod: text("auth_method").notNull().default("google"), // google, wallet, password, both
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

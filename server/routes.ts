@@ -45,7 +45,7 @@ import cookieParser from "cookie-parser";
 import { storage } from "./storage";
 import { authService } from "./auth";
 import { authenticateToken, optionalAuth, type AuthenticatedRequest } from "./middleware";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupGoogleAuth, isAuthenticated } from "./google-auth";
 import { loginSchema, registerSchema, walletLoginSchema } from "@shared/schema";
 import { insertLaborLogSchema, insertVoteSchema } from "@shared/schema";
 import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-index";
@@ -53,8 +53,13 @@ import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
   
-  // Setup Replit Auth middleware
-  await setupAuth(app);
+  /**
+   * Google OAuth Authentication Setup
+   * 
+   * Replaced Replit Auth with Google OAuth for more reliable authentication.
+   * Provides familiar Google sign-in experience and better mobile support.
+   */
+  await setupGoogleAuth(app);
 
   // Authentication routes
   app.post('/api/auth/register', async (req, res) => {
@@ -129,11 +134,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Replit Auth routes
+  /**
+   * Google OAuth User Endpoint
+   * 
+   * Updated to work with Google OAuth session format instead of Replit claims.
+   * Returns current authenticated user data for frontend authentication state.
+   */
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      // req.user now contains the User object from Google OAuth
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });

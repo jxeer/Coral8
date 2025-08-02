@@ -23,10 +23,11 @@ export function Landing() {
               <p className="text-sm text-moon-gray">Cowrie Ecosystem</p>
             </div>
           </div>
-          <Button asChild className="bg-seafoam hover:bg-seafoam/90 text-deep-navy">
-            <Link href="/login">
-              Sign In <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
+          <Button 
+            className="bg-seafoam hover:bg-seafoam/90 text-deep-navy"
+            onClick={() => window.location.href = '/auth/google'}
+          >
+            Sign in with Google <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </header>
@@ -44,13 +45,11 @@ export function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              asChild 
               size="lg" 
               className="bg-seafoam hover:bg-seafoam/90 text-deep-navy font-semibold px-8 py-4 text-lg"
+              onClick={() => window.location.href = '/auth/google'}
             >
-              <Link href="/login">
-                Get Started <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
+              Sign in with Google <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button 
               variant="outline" 

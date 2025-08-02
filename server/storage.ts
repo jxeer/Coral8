@@ -26,11 +26,15 @@ import { eq, desc, and } from "drizzle-orm";
  * User methods marked as mandatory are required for Replit Auth integration
  */
 export interface IStorage {
-  // Users (IMPORTANT - these methods are mandatory for Replit Auth)
+  // Users (Updated for Google OAuth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByWallet(walletAddress: string): Promise<User | undefined>;
+  getUserByEmail?(email: string): Promise<User | undefined>;
+  getUserByGoogleId?(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserGoogleId?(userId: string, googleId: string): Promise<void>;
+  updateUser?(userId: string, updates: Partial<User>): Promise<void>;
 
   // Labor Logs
   createLaborLog(laborLog: InsertLaborLog & { userId: string; cowTokensEarned: string; multiplier: string; proofHash?: string }): Promise<LaborLog>;
@@ -241,10 +245,53 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     this.users.set(id, user);
     return user;
+  }
+
+  /**
+   * Google OAuth Support Methods - MemStorage Implementation
+   * 
+   * In-memory implementation of Google OAuth methods for development.
+   * Comments added for clarity and debugging support.
+   */
+
+  // Find user by email address (for Google OAuth account linking)
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    for (const user of this.users.values()) {
+      if (user.email === email) return user;
+    }
+    return undefined;
+  }
+
+  // Find user by Google ID (primary Google OAuth lookup)
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    for (const user of this.users.values()) {
+      if (user.googleId === googleId) return user;
+    }
+    return undefined;
+  }
+
+  // Link Google ID to existing user account
+  async updateUserGoogleId(userId: string, googleId: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      user.googleId = googleId;
+      user.updatedAt = new Date();
+      this.users.set(userId, user);
+    }
+  }
+
+  // Update user profile with Google OAuth data
+  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      Object.assign(user, updates, { updatedAt: new Date() });
+      this.users.set(userId, user);
+    }
   }
 
   async createLaborLog(laborLog: InsertLaborLog & { userId: string; cowTokensEarned: string; multiplier: string; proofHash?: string }): Promise<LaborLog> {
@@ -415,6 +462,39 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
+  }
+
+  /**
+   * Google OAuth Support Methods - Database Implementation
+   * 
+   * These methods enable seamless Google OAuth integration with proper
+   * database persistence. Comments added for maintenance clarity.
+   */
+
+  // Find user by email address (for Google OAuth account linking)
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return user || undefined;
+  }
+
+  // Find user by Google ID (primary Google OAuth lookup)
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId)).limit(1);
+    return user || undefined;
+  }
+
+  // Link Google ID to existing user account
+  async updateUserGoogleId(userId: string, googleId: string): Promise<void> {
+    await db.update(users)
+      .set({ googleId, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  // Update user profile with Google OAuth data
+  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
+    await db.update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, userId));
   }
 
   // Labor Logs
