@@ -1,3 +1,11 @@
+/**
+ * Wallet Connection Button Component
+ * Handles MetaMask wallet integration for authenticated users
+ * Provides secondary authentication method alongside Replit OAuth
+ * Features signature verification and secure wallet address linking
+ * Enables Web3 functionality within the Coral8 ecosystem
+ */
+
 import { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';

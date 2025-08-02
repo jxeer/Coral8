@@ -1,3 +1,11 @@
+/**
+ * Balance Display Component
+ * Shows user's COW token balances across three token tiers (COW1, COW2, COW3)
+ * Features decay mechanism visualization with time-based warning and critical states
+ * Provides both mobile and desktop layouts with oceanic gradient styling
+ * Core to Coral8's multi-tier token economics system
+ */
+
 import { useAppContext } from "../contexts/app-context";
 import { formatCOWAmount, calculateDecayTime, formatTimeLeft } from "../lib/labor-index";
 import { Card } from "./ui/card";

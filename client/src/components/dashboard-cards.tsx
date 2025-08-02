@@ -1,3 +1,10 @@
+/**
+ * Dashboard Cards Component
+ * Displays key metrics and statistics for authenticated users
+ * Features culturally-rooted tracking including tribe members, emotion scoring, and COW earnings
+ * Uses gradient designs inspired by oceanic themes and provides real-time progress indicators
+ */
+
 import { useAppContext } from "../contexts/app-context";
 import { Card } from "./ui/card";
 import { 

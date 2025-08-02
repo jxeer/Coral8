@@ -1,3 +1,11 @@
+/**
+ * Marketplace Section Component
+ * Community-driven marketplace for trading goods and services with COW tokens
+ * Features culturally-significant items like handcrafted artwork and traditional goods
+ * Enables economic exchange within the Coral8 ecosystem using token payments
+ * Supports local artisans and community creators
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";

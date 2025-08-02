@@ -1,5 +1,18 @@
+/**
+ * Wave Animation Component
+ * Coral8 brand logo featuring oceanic wave patterns
+ * Inspired by Yemaya (ocean goddess) with flowing, rhythmic animations
+ * Uses Framer Motion for smooth, continuous wave-like movements
+ * Represents the connection between culture, community, and economic flow
+ */
+
 import { motion } from "framer-motion";
 
+/**
+ * Animated wave logo component with layered motion effects
+ * Features gradient backgrounds and pulsing animations to represent ocean waves
+ * @returns JSX element with animated wave logo
+ */
 export function WaveAnimation() {
   return (
     <div className="w-12 h-12 relative overflow-hidden rounded-full bg-gradient-to-br from-seafoam to-ocean-teal">

@@ -1,3 +1,11 @@
+/**
+ * Governance Section Component
+ * Enables community governance through proposal voting system
+ * Features democratic decision-making for protocol changes and community initiatives
+ * Displays active proposals with voting progress and time remaining
+ * Central to Coral8's decentralized community governance model
+ */
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
