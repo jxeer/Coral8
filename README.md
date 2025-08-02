@@ -2,6 +2,16 @@
 
 Coral8 is a full-stack web application that serves as the off-chain interface for the Cowrie Coin blockchain ecosystem. The platform allows users to log culturally rooted labor, earn COW tokens, participate in governance, and engage in community marketplace activities. Built with a modern React frontend and Express backend, the application emphasizes cultural preservation, community building, and alternative economic models through blockchain-based token rewards.
 
+## Recent Updates (January 2025)
+
+✓ **Styling & UI Enhancements**: Fixed Tailwind configuration to properly support custom oceanic colors, resolved text contrast issues in token balance sections
+✓ **COW Token Balance Icons**: Added meaningful icons (Coins, TrendingUp, Zap) with descriptions for COW1, COW2, COW3 tokens  
+✓ **Coral8 Logo Restoration**: Implemented oceanic wave pattern logo in sidebar with smooth animation
+✓ **Complete Navigation**: All pages (Dashboard, Tasks, Contracts, Clients, Invoices) fully functional with authentic cultural preservation content
+✓ **Mobile-First Design**: Responsive layout working across all screen sizes with proper contrast and readability
+✓ **Replit Authentication**: Implemented Replit Auth with Google sign-in, replacing custom authentication system
+→ **OAuth Flow Debugging**: Working to resolve authorization code handling in callback flow
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -38,9 +48,10 @@ Preferred communication style: Simple, everyday language.
 - **Multi-Tier Tokens**: COW1, COW2, COW3 with different characteristics and use cases
 
 ## Authentication & Security
-- **Wallet-Based Identity**: Users identified by blockchain wallet addresses
+- **Replit Auth**: OAuth-based authentication with Google and other providers
 - **Session Management**: Cookie-based sessions with PostgreSQL session store
 - **Type Safety**: End-to-end TypeScript with shared schema validation using Zod
+- **MetaMask Integration**: Secondary wallet connection for authenticated users
 
 # External Dependencies
 

@@ -1,6 +1,7 @@
 import { useIsMobile } from "../hooks/use-mobile";
 import { Sidebar } from "../components/sidebar";
 import { MobileNavigation } from "../components/mobile-navigation";
+import { WalletConnectionButton } from "../components/wallet-connection-button";
 import { DashboardCards } from "../components/dashboard-cards";
 import { LaborLogging } from "../components/labor-logging";
 import { BalanceDisplay } from "../components/balance-display";
@@ -29,13 +30,10 @@ export default function Dashboard() {
               <h2 className="text-2xl lg:text-3xl font-bold text-deep-navy mb-2">Welcome back</h2>
               <p className="text-moon-gray">Manage your labor contributions and earn COW tokens</p>
             </div>
-            {/* Mobile Wallet Address */}
+            {/* Mobile Wallet Connection */}
             {isMobile && (
               <div className="mt-4 sm:mt-0">
-                <div className="bg-ocean-blue/10 rounded-xl p-3 text-center">
-                  <p className="text-xs text-ocean-blue mb-1">Wallet</p>
-                  <p className="text-sm font-mono text-deep-navy">{walletAddress}</p>
-                </div>
+                <WalletConnectionButton />
               </div>
             )}
           </div>

@@ -8,10 +8,14 @@ import {
   type UserStats
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { users, laborLogs, tokenBalances, governanceProposals, votes, marketplaceItems, userStats } from "@shared/schema";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
+  // Users (IMPORTANT - these methods are mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   getUserByWallet(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
@@ -314,4 +318,128 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // Users (IMPORTANT - these methods are mandatory for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return user || undefined;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  async getUserByWallet(walletAddress: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress)).limit(1);
+    return user || undefined;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db.insert(users).values(user).returning();
+    return newUser;
+  }
+
+  // Labor Logs
+  async createLaborLog(laborLog: InsertLaborLog & { userId: string; cowTokensEarned: string; multiplier: string; proofHash?: string }): Promise<LaborLog> {
+    const [newLog] = await db.insert(laborLogs).values(laborLog).returning();
+    return newLog;
+  }
+
+  async getUserLaborLogs(userId: string): Promise<LaborLog[]> {
+    return await db.select().from(laborLogs).where(eq(laborLogs.userId, userId)).orderBy(desc(laborLogs.createdAt));
+  }
+
+  // Token Balances
+  async getTokenBalance(userId: string): Promise<TokenBalance | undefined> {
+    const [balance] = await db.select().from(tokenBalances).where(eq(tokenBalances.userId, userId)).limit(1);
+    return balance || undefined;
+  }
+
+  async createTokenBalance(balance: InsertTokenBalance): Promise<TokenBalance> {
+    const [newBalance] = await db.insert(tokenBalances).values(balance).returning();
+    return newBalance;
+  }
+
+  async updateTokenBalance(userId: string, updates: Partial<TokenBalance>): Promise<TokenBalance> {
+    const [updatedBalance] = await db.update(tokenBalances)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tokenBalances.userId, userId))
+      .returning();
+    return updatedBalance;
+  }
+
+  // Governance
+  async getActiveProposals(): Promise<GovernanceProposal[]> {
+    return await db.select().from(governanceProposals).orderBy(desc(governanceProposals.createdAt));
+  }
+
+  async getProposal(id: string): Promise<GovernanceProposal | undefined> {
+    const [proposal] = await db.select().from(governanceProposals).where(eq(governanceProposals.id, id)).limit(1);
+    return proposal || undefined;
+  }
+
+  async createProposal(proposal: InsertGovernanceProposal): Promise<GovernanceProposal> {
+    const [newProposal] = await db.insert(governanceProposals).values(proposal).returning();
+    return newProposal;
+  }
+
+  async createVote(vote: InsertVote): Promise<Vote> {
+    const [newVote] = await db.insert(votes).values(vote).returning();
+    return newVote;
+  }
+
+  async getUserVote(userId: string, proposalId: string): Promise<Vote | undefined> {
+    const [vote] = await db.select().from(votes)
+      .where(and(eq(votes.userId, userId), eq(votes.proposalId, proposalId)))
+      .limit(1);
+    return vote || undefined;
+  }
+
+  async updateProposalVotes(proposalId: string, votesYes: number, votesNo: number): Promise<void> {
+    await db.update(governanceProposals)
+      .set({ votesYes, votesNo })
+      .where(eq(governanceProposals.id, proposalId));
+  }
+
+  // Marketplace
+  async getMarketplaceItems(): Promise<MarketplaceItem[]> {
+    return await db.select().from(marketplaceItems).orderBy(desc(marketplaceItems.createdAt));
+  }
+
+  async getMarketplaceItem(id: string): Promise<MarketplaceItem | undefined> {
+    const [item] = await db.select().from(marketplaceItems).where(eq(marketplaceItems.id, id)).limit(1);
+    return item || undefined;
+  }
+
+  async createMarketplaceItem(item: InsertMarketplaceItem & { sellerId: string }): Promise<MarketplaceItem> {
+    const [newItem] = await db.insert(marketplaceItems).values(item).returning();
+    return newItem;
+  }
+
+  // User Stats
+  async getUserStats(userId: string): Promise<UserStats | undefined> {
+    const [stats] = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
+    return stats || undefined;
+  }
+
+  async updateUserStats(userId: string, stats: Partial<UserStats>): Promise<UserStats> {
+    const [updatedStats] = await db.update(userStats)
+      .set({ ...stats, updatedAt: new Date() })
+      .where(eq(userStats.userId, userId))
+      .returning();
+    return updatedStats;
+  }
+}
+
+export const storage = new DatabaseStorage();
