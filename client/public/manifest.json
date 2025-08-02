@@ -1,14 +1,15 @@
 {
-  "name": "Coral8 - Cowrie Ecosystem",
+  "name": "Coral8 - Cultural Labor Platform",
   "short_name": "Coral8",
-  "description": "Log culturally rooted labor, earn COW tokens, and participate in community governance",
+  "description": "Track culturally rooted labor, earn COW tokens, and participate in community governance with Coral8's mobile-first platform.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F172A",
-  "theme_color": "#06B6D4",
+  "background_color": "#F7F9FC",
+  "theme_color": "#0F172A",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
   "categories": ["productivity", "finance", "social"],
-  "lang": "en-US",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -63,44 +64,60 @@
     {
       "name": "Log Labor",
       "short_name": "Log Labor",
-      "description": "Quickly log your culturally rooted labor",
-      "url": "/?action=log-labor",
+      "description": "Quickly log your cultural labor activities",
+      "url": "/demo#labor",
       "icons": [
         {
-          "src": "/icons/shortcut-labor.png",
+          "src": "/icons/icon-96x96.png",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "View Balance",
-      "short_name": "Balance",
+      "name": "View Tokens",
+      "short_name": "Tokens",
       "description": "Check your COW token balance",
-      "url": "/?action=balance",
+      "url": "/demo#balance",
       "icons": [
         {
-          "src": "/icons/shortcut-balance.png",
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Community Voting",
+      "short_name": "Vote",
+      "description": "Participate in governance decisions",
+      "url": "/demo#governance",
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
           "sizes": "96x96"
         }
       ]
     }
   ],
-  "related_applications": [],
-  "prefer_related_applications": false,
   "screenshots": [
     {
       "src": "/screenshots/mobile-dashboard.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Mobile Dashboard View"
+      "label": "Mobile Dashboard"
     },
     {
-      "src": "/screenshots/desktop-dashboard.png",
+      "src": "/screenshots/desktop-dashboard.png", 
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Desktop Dashboard View"
+      "label": "Desktop Dashboard"
     }
-  ]
+  ],
+  "features": [
+    "Cross Platform",
+    "Fast",
+    "Simple"
+  ],
+  "prefer_related_applications": false
 }
