@@ -111,7 +111,7 @@ export async function setupAuth(app: Express) {
       const config = await getOidcConfig();
       
       // Generate PKCE (Proof Key for Code Exchange) parameters for secure OAuth flow
-      const codeVerifier = client.randomBytes(64);
+      const codeVerifier = client.randomPKCECodeVerifier();
       const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
       
       // Store code verifier in session for later use in token exchange
