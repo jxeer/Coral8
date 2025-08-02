@@ -1,8 +1,36 @@
 /**
- * Labor Index and Token Economics System
- * Implements culturally-rooted multipliers for different types of labor
- * Honors ancestral wisdom by providing higher rewards for cultural preservation work
- * Central to Coral8's mission of valuing traditionally undercompensated labor
+ * Coral8 Labor Index - Cultural Value Recognition System
+ * 
+ * This module implements the core economic philosophy of Coral8 by providing
+ * multiplier-based token rewards that recognize the true value of cultural work,
+ * ancestral wisdom, and community-essential labor that has been historically
+ * undervalued in traditional economic systems.
+ * 
+ * Cultural Philosophy:
+ * The Labor Index directly challenges Western capitalist frameworks by explicitly
+ * valuing care work, cultural preservation, and community organizing. These forms
+ * of labor are essential for community wellbeing but have been systematically
+ * devalued or unpaid in dominant economic systems.
+ * 
+ * Labor Value Framework:
+ * - Cultural Preservation (2.1x): Highest value for ancestral knowledge, language
+ * - Care Work (2.0x): Essential community support, healing, childcare
+ * - Teaching (1.9x): Knowledge transmission, mentorship, skill sharing
+ * - Traditional Crafts (1.9x): Ancestral techniques, cultural expressions
+ * - Arts & Healing (1.8x): Creative expressions, wellness practices
+ * - Community Building (1.7x): Organizing, events, collective action
+ * - Storytelling (1.7x): Oral traditions, narrative preservation
+ * - Environmental Work (1.6x): Land stewardship, sustainability
+ * - Food Preparation (1.5x): Traditional food systems, nourishment
+ * - Base Labor (1.0x): General community support and assistance
+ * 
+ * Economic Formula:
+ * COW Tokens Earned = Hours Worked × 11 (sacred base rate) × Cultural Multiplier
+ * 
+ * Sacred Base Rate:
+ * The number 11 represents balance and transition in many indigenous traditions,
+ * symbolizing the bridge between material and spiritual realms, making it
+ * appropriate for valuing cultural labor.
  */
 
 // Labor Index Table: Multipliers for calculating COW token rewards

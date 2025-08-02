@@ -1,6 +1,37 @@
-// Main Application Component
-// Handles routing between authenticated and public views
-// Integrates React Query for server state management and authentication context
+/**
+ * Coral8 Main Application Component
+ * 
+ * This is the root component for the Coral8 off-chain interface, serving as the
+ * web application for the Cowrie Coin blockchain ecosystem. Coral8 enables users
+ * to log culturally rooted labor, earn COW tokens, participate in governance,
+ * and engage in community marketplace activities.
+ * 
+ * Core Features:
+ * - Cultural labor tracking with multiplier-based token rewards
+ * - Three-tier COW token system (COW1, COW2, COW3)
+ * - Community governance voting and proposal system
+ * - Marketplace for goods and services using COW tokens
+ * - Mobile-first responsive design with oceanic Yemaya theming
+ * 
+ * Architecture:
+ * - React 18 with TypeScript for type safety
+ * - Wouter for lightweight client-side routing
+ * - React Query for server state management and caching
+ * - Replit OAuth authentication with wallet connection support
+ * - Context providers for global state management
+ * - shadcn/ui component library with Tailwind CSS styling
+ * 
+ * Authentication Flow:
+ * - Unauthenticated: Landing page with login options
+ * - Authenticated: Dashboard with full feature access
+ * - Demo mode: Full feature preview without authentication
+ * 
+ * Design System:
+ * - Oceanic color palette (deep navy, ocean blue, seafoam, pearl white)
+ * - Mobile-first responsive breakpoints
+ * - Accessible UI components with proper ARIA labels
+ * - Smooth animations and transitions for enhanced UX
+ */
 
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
@@ -24,9 +55,19 @@ import NotFound from "@/pages/not-found";
 
 /**
  * Main Router Component
- * Handles conditional rendering based on authentication state
- * Shows public pages (Landing, Login) for unauthenticated users
- * Shows protected dashboard with sidebar navigation for authenticated users
+ * 
+ * Manages application routing based on authentication state:
+ * - Public routes: Landing page, login, demo dashboard
+ * - Protected routes: Dashboard, contracts, invoices, clients, tasks
+ * - Conditional rendering based on user authentication status
+ * - Loading states during authentication checks
+ * - Automatic redirection after login/logout
+ * 
+ * Route Structure:
+ * - "/" - Landing (public) or Dashboard (authenticated)
+ * - "/demo" - Demo dashboard (always accessible)
+ * - "/login" - Authentication page
+ * - Protected routes require valid user session
  */
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();

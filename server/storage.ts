@@ -82,16 +82,27 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleData() {
-    // Create a default user
+    // Create a default user with all required fields
     const defaultUser: User = {
       id: "default-user",
+      email: "demo@coral8.com",
+      firstName: "Ocean",
+      lastName: "Guardian",
+      profileImageUrl: null,
       walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
       username: "ocean_guardian",
+      passwordHash: null,
+      bio: "Demo user for Coral8 cultural labor platform",
+      isEmailVerified: true,
+      isWalletVerified: true,
+      lastLogin: new Date(),
+      authMethod: "replit",
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.users.set(defaultUser.id, defaultUser);
 
-    // Create default token balance
+    // Create default token balance with all required fields
     const defaultBalance: TokenBalance = {
       id: "default-balance",
       userId: defaultUser.id,
@@ -172,8 +183,51 @@ export class MemStorage implements IStorage {
     this.marketplaceItems.set(item2.id, item2);
   }
 
+  /**
+   * Get user by ID
+   * Required for Replit Auth integration
+   */
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
+  }
+
+  /**
+   * Upsert user (insert or update)
+   * Required for Replit Auth integration - creates or updates user from OAuth claims
+   */
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existingUser = this.users.get(userData.id || "");
+    if (existingUser) {
+      // Update existing user
+      const updatedUser: User = {
+        ...existingUser,
+        ...userData,
+        updatedAt: new Date(),
+      };
+      this.users.set(updatedUser.id, updatedUser);
+      return updatedUser;
+    } else {
+      // Create new user
+      const newUser: User = {
+        id: userData.id || randomUUID(),
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
+        walletAddress: userData.walletAddress || null,
+        username: userData.username || null,
+        passwordHash: userData.passwordHash || null,
+        bio: userData.bio || null,
+        isEmailVerified: userData.isEmailVerified || false,
+        isWalletVerified: userData.isWalletVerified || false,
+        lastLogin: userData.lastLogin || null,
+        authMethod: userData.authMethod || "replit",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      this.users.set(newUser.id, newUser);
+      return newUser;
+    }
   }
 
   async getUserByWallet(walletAddress: string): Promise<User | undefined> {

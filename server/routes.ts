@@ -1,8 +1,42 @@
 /**
- * Express Routes Configuration
- * Defines all API endpoints for the Coral8 application
- * Includes authentication, labor logging, governance, marketplace, and user management
- * Integrates Replit Auth, token-based auth, and wallet connections
+ * Coral8 API Routes - Server Endpoint Configuration
+ * 
+ * This file defines all RESTful API endpoints for the Coral8 off-chain interface,
+ * implementing the complete backend functionality for cultural labor tracking,
+ * token economics, governance, and community marketplace.
+ * 
+ * API Categories:
+ * - Authentication: Multi-method user authentication (Replit OAuth, wallet, password)
+ * - Labor Tracking: Cultural work logging with multiplier-based token calculations
+ * - Token Economics: Three-tier COW token system management and transfers
+ * - Governance: Community proposal creation and democratic voting
+ * - Marketplace: Cultural goods and services trading platform
+ * - User Analytics: Comprehensive stats and engagement metrics
+ * - Decay System: Token sustainability through activity-based value preservation
+ * 
+ * Labor Economics Implementation:
+ * - Base rate: 11 COW tokens per hour
+ * - Cultural multipliers: Care Work (2.0x), Cultural Preservation (2.1x), etc.
+ * - Proof-of-work system with cryptographic verification
+ * - Community attestation through witness verification
+ * 
+ * Token System Architecture:
+ * - COW1: Liquid tokens for immediate transactions and marketplace
+ * - COW2: Staked tokens for governance voting power
+ * - COW3: Governance tokens for proposal creation and advanced features
+ * - Decay mechanism: 1% per hour after 24 hours of inactivity
+ * 
+ * Security & Validation:
+ * - Zod schema validation for all incoming data
+ * - Authentication middleware for protected endpoints
+ * - SQL injection prevention via Drizzle ORM
+ * - Rate limiting considerations for public demo access
+ * 
+ * Cultural Focus:
+ * - Recognition of ancestral wisdom and traditional knowledge
+ * - Value-based multipliers for community-essential work
+ * - Democratic governance with transparent decision-making
+ * - Marketplace supporting cultural goods and services
  */
 
 import type { Express } from "express";
@@ -168,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update token balances (simplified - add to COW1 for now)
       const currentBalance = await storage.getTokenBalance("default-user");
       if (currentBalance) {
-        const newCow1Balance = parseFloat(currentBalance.cow1Balance) + cowTokensEarned;
+        const newCow1Balance = parseFloat(currentBalance.cow1Balance || "0") + cowTokensEarned;
         await storage.updateTokenBalance("default-user", {
           cow1Balance: newCow1Balance.toString(),
           lastActive: new Date()
@@ -178,9 +212,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user stats
       const currentStats = await storage.getUserStats("default-user");
       if (currentStats) {
-        const newMonthlyEarnings = parseFloat(currentStats.monthlyEarnings) + cowTokensEarned;
-        const newFocusScore = Math.min(currentStats.focusScore + 1, 10);
-        await storage.updateUserStats("default-user", {
+        const newMonthlyEarnings = parseFloat(currentStats.monthlyEarnings || "0") + cowTokensEarned;
+        const newFocusScore = Math.min((currentStats.focusScore || 0) + 1, 10);
+        await storage.updateUserStats("default-user" || "", {
           monthlyEarnings: newMonthlyEarnings.toString(),
           focusScore: newFocusScore
         });
@@ -239,8 +273,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update proposal vote counts
       const proposal = await storage.getProposal(proposalId);
       if (proposal) {
-        const newVotesYes = vote ? proposal.votesYes + 1 : proposal.votesYes;
-        const newVotesNo = vote ? proposal.votesNo : proposal.votesNo + 1;
+        const newVotesYes = vote ? (proposal.votesYes || 0) + 1 : (proposal.votesYes || 0);
+        const newVotesNo = vote ? (proposal.votesNo || 0) : (proposal.votesNo || 0) + 1;
         await storage.updateProposalVotes(proposalId, newVotesYes, newVotesNo);
       }
 
@@ -270,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const now = new Date();
-      const lastActive = new Date(balance.lastActive);
+      const lastActive = new Date(balance.lastActive || new Date());
       const hoursSinceActive = (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60);
 
       // Apply 1% decay per hour of inactivity after 24 hours
@@ -279,9 +313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const hoursOfDecay = hoursSinceActive - 24;
         const decayFactor = Math.pow(1 - decayRate, hoursOfDecay);
 
-        const newCow1Balance = (parseFloat(balance.cow1Balance) * decayFactor).toString();
-        const newCow2Balance = (parseFloat(balance.cow2Balance) * decayFactor).toString();
-        const newCow3Balance = (parseFloat(balance.cow3Balance) * decayFactor).toString();
+        const newCow1Balance = (parseFloat(balance.cow1Balance || "0") * decayFactor).toString();
+        const newCow2Balance = (parseFloat(balance.cow2Balance || "0") * decayFactor).toString();
+        const newCow3Balance = (parseFloat(balance.cow3Balance || "0") * decayFactor).toString();
 
         await storage.updateTokenBalance("default-user", {
           cow1Balance: newCow1Balance,

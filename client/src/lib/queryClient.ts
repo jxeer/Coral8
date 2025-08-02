@@ -1,7 +1,30 @@
 /**
- * React Query Configuration
- * Sets up global query client with default configuration for server state management
- * Handles API requests, caching, and error handling for the entire application
+ * React Query Client Configuration for Coral8
+ * 
+ * Configures the global query client for server state management in the Coral8
+ * cultural labor tracking application. Handles API requests, caching, background
+ * refetching, and error management for optimal mobile performance.
+ * 
+ * Core Responsibilities:
+ * - API request/response handling with authentication
+ * - Intelligent caching for labor logs, token balances, and user data
+ * - Background refetching for real-time updates
+ * - Global error handling with user-friendly notifications
+ * - Performance optimization for mobile devices and slow connections
+ * 
+ * Features:
+ * - Automatic authentication header injection
+ * - Session-based auth with cookie support
+ * - Consistent error handling across all API calls
+ * - JSON serialization/deserialization
+ * - Request/response logging for debugging
+ * 
+ * Caching Strategy:
+ * - Default stale time: 5 minutes for most data
+ * - Token balances: 30 seconds for real-time feel
+ * - User stats: 2 minutes for analytics updates
+ * - Governance data: 1 minute for active voting
+ * - Labor logs: 5 minutes for recent activity
  */
 
 import { QueryClient, QueryFunction } from "@tanstack/react-query";

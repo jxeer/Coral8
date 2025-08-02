@@ -1,8 +1,45 @@
 /**
- * Demo Dashboard Page
- * Temporary demo mode to preview mobile features without OAuth
- * Showcases all mobile optimizations, PWA features, and Coral8 functionality
- * Uses mock data to demonstrate the complete user experience
+ * Coral8 Demo Dashboard - Complete Feature Preview
+ * 
+ * This comprehensive demo page showcases the full Coral8 application experience
+ * without requiring authentication, allowing visitors to explore all features
+ * and understand the value proposition before signing up.
+ * 
+ * Purpose & Goals:
+ * - Demonstrate complete Coral8 functionality and mobile experience
+ * - Showcase cultural labor tracking with real-time token calculations
+ * - Preview three-tier COW token system and governance features
+ * - Display marketplace capabilities and community interactions
+ * - Provide realistic data and interactions for informed decision-making
+ * 
+ * Feature Demonstrations:
+ * - Labor Logging: Multiple work types with cultural multipliers
+ * - Token Economics: COW1/COW2/COW3 balance management and transfers
+ * - Governance: Community proposals with Yes/No voting options
+ * - Marketplace: Cultural goods browsing and selling interface
+ * - Analytics: User stats including focus score, earnings, and community metrics
+ * - Mobile UX: Touch-friendly interactions and responsive design
+ * 
+ * Technical Implementation:
+ * - React Context for demo state management
+ * - Mock data that matches production schema
+ * - Interactive buttons with loading states and visual feedback
+ * - Toast notifications for user action confirmation
+ * - Tab navigation between major feature sections
+ * - Realistic calculations using actual labor index formulas
+ * 
+ * Design System:
+ * - Oceanic Yemaya-inspired theming (deep navy, ocean blue, seafoam, pearl white)
+ * - Mobile-first responsive breakpoints and touch targets
+ * - Smooth animations and transitions for enhanced user experience
+ * - Accessible UI components with proper ARIA labels and contrast
+ * 
+ * User Journey:
+ * 1. Landing page explanation and "Preview Demo" call-to-action
+ * 2. Immediate access to full dashboard without signup friction
+ * 3. Interactive exploration of all major features
+ * 4. Educational explanations and realistic data
+ * 5. Clear path to actual authentication and signup
  */
 
 import { useIsMobile } from "../hooks/use-mobile";
