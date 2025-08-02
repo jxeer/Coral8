@@ -144,14 +144,18 @@ export async function setupGoogleAuth(app: Express) {
 
   // Passport serialization
   passport.serializeUser((user: Express.User, done) => {
+    console.log("Serializing user:", (user as User).id);
     done(null, (user as User).id);
   });
 
   passport.deserializeUser(async (id: string, done) => {
     try {
+      console.log("Deserializing user ID:", id);
       const user = await storage.getUser(id);
+      console.log("Deserialized user:", user ? "found" : "not found");
       done(null, user);
     } catch (error) {
+      console.error("Deserialize error:", error);
       done(error);
     }
   });
