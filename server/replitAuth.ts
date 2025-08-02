@@ -113,34 +113,57 @@ export async function setupAuth(app: Express) {
       const config = await getOidcConfig();
       const { code } = req.query;
       
+      console.log("Callback received with code:", !!code);
+      
       if (!code) {
-        return res.redirect("/login?error=no_code");
+        console.log("No authorization code received");
+        return res.redirect("/?error=no_code");
       }
 
-      const tokens = await client.authorizationCodeGrant(config, {
-        client_id: process.env.REPL_ID!,
+      const tokens = await client.authorizationCodeGrant(config, process.env.REPL_ID!, {
         code: code as string,
         redirect_uri: `${req.protocol}://${req.hostname}/api/callback`,
       });
 
       const claims = tokens.claims();
-      const user = { claims, tokens };
+      console.log("Claims received:", claims?.sub, claims?.email);
       
-      // Store user in session
-      req.login(user, (err) => {
+      if (!claims) {
+        console.error("No claims received from token");
+        return res.redirect("/?error=no_claims");
+      }
+      
+      // Upsert user in database first
+      await upsertUser(claims);
+      
+      // Create simplified user object for session
+      const user = {
+        claims: {
+          sub: claims.sub,
+          email: claims.email,
+          first_name: claims.first_name,
+          last_name: claims.last_name,
+          profile_image_url: claims.profile_image_url,
+          exp: claims.exp
+        },
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: claims.exp
+      };
+      
+      // Store user in session manually
+      (req.session as any).passport = { user };
+      req.session.save((err) => {
         if (err) {
-          console.error("Login error:", err);
-          return res.redirect("/login?error=session_failed");
+          console.error("Session save error:", err);
+          return res.redirect("/?error=session_failed");
         }
-        
-        // Upsert user in database
-        upsertUser(claims).catch(console.error);
-        
+        console.log("Session saved successfully");
         res.redirect("/");
       });
     } catch (error) {
       console.error("Callback error:", error);
-      res.redirect("/login?error=auth_failed");
+      res.redirect("/?error=auth_failed");
     }
   });
 
@@ -155,9 +178,12 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  const user = req.user as any;
+  const user = (req.session as any)?.passport?.user || req.user;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  console.log("Auth check - Session exists:", !!(req.session as any)?.passport);
+  console.log("Auth check - User exists:", !!user);
+
+  if (!user || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -166,10 +192,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return next();
   }
 
+  // Token expired, try refresh
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
@@ -178,7 +204,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     updateUserSession(user, tokenResponse);
     return next();
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    console.error("Token refresh error:", error);
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };
