@@ -1,167 +1,152 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "./ui/button";
-import { Wallet, Waves, CheckCircle } from "lucide-react";
-import { useAppContext } from "../contexts/app-context";
+import { useState } from 'react';
+import { Button, ButtonProps } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Wallet, Waves } from 'lucide-react';
 
-export function WalletConnectionButton() {
-  const { walletAddress, setWalletAddress } = useAppContext();
+interface WalletConnectionButtonProps extends Omit<ButtonProps, 'onClick' | 'onError'> {
+  onSuccess?: (token: string, user: any) => void;
+  onError?: (error: string) => void;
+}
+
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
+
+export function WalletConnectionButton({ 
+  onSuccess, 
+  onError, 
+  children,
+  className = '',
+  ...props 
+}: WalletConnectionButtonProps) {
   const [isConnecting, setIsConnecting] = useState(false);
-  const [showWaves, setShowWaves] = useState(false);
+  const { toast } = useToast();
 
-  const handleConnect = async () => {
-    if (walletAddress) {
-      // Disconnect wallet
-      setWalletAddress("");
-      return;
-    }
-
+  const connectWallet = async () => {
     setIsConnecting(true);
-    setShowWaves(true);
 
     try {
-      // Simulate wallet connection with Web3
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Check if MetaMask is installed
+      if (!window.ethereum) {
+        const error = 'MetaMask not detected. Please install MetaMask to continue.';
+        onError?.(error);
+        toast({
+          title: 'MetaMask Required',
+          description: error,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found. Please make sure MetaMask is unlocked.');
+      }
+
+      const walletAddress = accounts[0];
+
+      // Get nonce from server
+      const nonceResponse = await fetch('/api/auth/nonce');
+      if (!nonceResponse.ok) {
+        throw new Error('Failed to get authentication nonce');
+      }
+      const { nonce } = await nonceResponse.json();
+
+      // Get message to sign
+      const messageResponse = await fetch('/api/auth/wallet-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ walletAddress, nonce }),
+      });
+
+      if (!messageResponse.ok) {
+        throw new Error('Failed to get authentication message');
+      }
+      const { message } = await messageResponse.json();
+
+      // Request signature
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, walletAddress],
+      });
+
+      // Authenticate with server
+      const authResponse = await fetch('/api/auth/wallet-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress,
+          signature,
+          message,
+        }),
+      });
+
+      if (!authResponse.ok) {
+        const error = await authResponse.json();
+        throw new Error(error.message || 'Wallet authentication failed');
+      }
+
+      const result = await authResponse.json();
       
-      // Generate a sample wallet address
-      const sampleWallet = "0x" + Math.random().toString(16).substr(2, 40);
-      setWalletAddress(sampleWallet);
-    } catch (error) {
-      console.error("Failed to connect wallet:", error);
+      onSuccess?.(result.token, result.user);
+      
+      toast({
+        title: 'Wallet Connected!',
+        description: `Connected to ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`,
+        variant: 'default',
+      });
+
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to connect wallet';
+      onError?.(errorMessage);
+      
+      toast({
+        title: 'Connection Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setIsConnecting(false);
-      setTimeout(() => setShowWaves(false), 1000);
     }
-  };
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (
-    <div className="relative">
-      {/* Animated wave background when connecting */}
-      {showWaves && (
-        <div className="absolute inset-0 -z-10 overflow-hidden rounded-xl">
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-ocean-blue via-ocean-teal to-seafoam opacity-20"
-            animate={{
-              x: ["-100%", "100%", "-100%"],
-            }}
-            transition={{
-              duration: 3,
-              ease: "easeInOut",
-              repeat: Infinity,
-            }}
-          />
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-seafoam via-ocean-teal to-ocean-blue opacity-30"
-            animate={{
-              x: ["100%", "-100%", "100%"],
-            }}
-            transition={{
-              duration: 2.5,
-              ease: "easeInOut",
-              repeat: Infinity,
-              delay: 0.5,
-            }}
-          />
-        </div>
-      )}
-
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        animate={isConnecting ? { 
-          boxShadow: [
-            "0 0 0 0 rgba(192, 132, 252, 0.4)",
-            "0 0 0 10px rgba(192, 132, 252, 0)",
-            "0 0 0 0 rgba(192, 132, 252, 0.4)"
-          ]
-        } : {}}
-        transition={isConnecting ? {
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "easeInOut"
-        } : {}}
-      >
-        <Button
-          onClick={handleConnect}
-          disabled={isConnecting}
-          className={`
-            relative overflow-hidden px-6 py-3 min-w-[200px]
-            ${walletAddress 
-              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' 
-              : 'bg-gradient-to-r from-ocean-blue to-ocean-teal hover:from-ocean-teal hover:to-seafoam'
-            }
-            text-pearl-white font-medium rounded-xl shadow-lg
-            transition-all duration-300 ease-in-out
-            ${isConnecting ? 'cursor-not-allowed' : 'hover:shadow-xl'}
-          `}
-        >
-          {/* Wave animation overlay */}
-          {isConnecting && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-              animate={{
-                x: ["-100%", "100%"],
-              }}
-              transition={{
-                duration: 1.5,
-                ease: "easeInOut",
-                repeat: Infinity,
-              }}
-            />
-          )}
-
-          <div className="relative flex items-center space-x-3">
-            {isConnecting ? (
-              <>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
-                  <Waves className="w-5 h-5" />
-                </motion.div>
-                <span>Connecting Waves...</span>
-              </>
-            ) : walletAddress ? (
-              <>
-                <CheckCircle className="w-5 h-5" />
-                <span>{formatAddress(walletAddress)}</span>
-              </>
-            ) : (
-              <>
-                <Wallet className="w-5 h-5" />
-                <span>Connect Wallet</span>
-              </>
-            )}
-          </div>
-
-          {/* Ripple effect on click */}
-          {isConnecting && (
-            <motion.div
-              className="absolute inset-0 bg-white/10 rounded-xl"
-              initial={{ scale: 0, opacity: 1 }}
-              animate={{ scale: 1.5, opacity: 0 }}
-              transition={{ duration: 0.6 }}
-            />
-          )}
-        </Button>
-      </motion.div>
-
-      {/* Connection status indicator */}
-      {walletAddress && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute -bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-            Connected to Optimism Sepolia
-          </div>
-        </motion.div>
-      )}
-    </div>
+    <Button
+      onClick={connectWallet}
+      disabled={isConnecting}
+      className={`relative overflow-hidden group ${className}`}
+      {...props}
+    >
+      {/* Animated background waves */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 bg-gradient-to-r from-ocean-light via-seafoam-light to-teal-400 animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
+      </div>
+      
+      {/* Content */}
+      <div className="relative flex items-center justify-center space-x-2">
+        {isConnecting ? (
+          <>
+            <Waves className="w-4 h-4 animate-pulse" />
+            <span>Connecting...</span>
+          </>
+        ) : (
+          <>
+            <Wallet className="w-4 h-4" />
+            <span>{children || 'Connect MetaMask'}</span>
+          </>
+        )}
+      </div>
+    </Button>
   );
 }

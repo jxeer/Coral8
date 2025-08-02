@@ -5,9 +5,20 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  walletAddress: text("wallet_address").notNull().unique(),
-  username: text("username"),
+  username: text("username").unique(),
+  email: text("email").unique(),
+  passwordHash: text("password_hash"),
+  walletAddress: text("wallet_address").unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  profileImage: text("profile_image"),
+  bio: text("bio"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  isWalletVerified: boolean("is_wallet_verified").default(false),
+  lastLogin: timestamp("last_login"),
+  authMethod: text("auth_method").notNull().default("password"), // password, wallet, both
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const laborLogs = pgTable("labor_logs", {
@@ -134,3 +145,55 @@ export type InsertMarketplaceItem = z.infer<typeof insertMarketplaceItemSchema>;
 export type MarketplaceItem = typeof marketplaceItems.$inferSelect;
 
 export type UserStats = typeof userStats.$inferSelect;
+
+// Authentication tables
+export const sessions = pgTable("sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const emailVerificationTokens = pgTable("email_verification_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Auth schemas
+export const loginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+
+export const registerSchema = z.object({
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(8),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+});
+
+export const walletLoginSchema = z.object({
+  walletAddress: z.string().min(1),
+  signature: z.string().min(1),
+  message: z.string().min(1),
+});
+
+export type Session = typeof sessions.$inferSelect;
+export type LoginRequest = z.infer<typeof loginSchema>;
+export type RegisterRequest = z.infer<typeof registerSchema>;
+export type WalletLoginRequest = z.infer<typeof walletLoginSchema>;

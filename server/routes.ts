@@ -1,19 +1,101 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import cookieParser from "cookie-parser";
 import { storage } from "./storage";
+import { authService } from "./auth";
+import { authenticateToken, optionalAuth, type AuthenticatedRequest } from "./middleware";
+import { loginSchema, registerSchema, walletLoginSchema } from "@shared/schema";
 import { insertLaborLogSchema, insertVoteSchema } from "@shared/schema";
 import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
-  // Get current user (default user for now)
-  app.get("/api/user", async (req, res) => {
+  app.use(cookieParser());
+
+  // Authentication routes
+  app.post('/api/auth/register', async (req, res) => {
     try {
-      const user = await storage.getUser("default-user");
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      const data = registerSchema.parse(req.body);
+      const result = await authService.register(data);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const data = loginSchema.parse(req.body);
+      const result = await authService.login(data);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/auth/wallet-login', async (req, res) => {
+    try {
+      const data = walletLoginSchema.parse(req.body);
+      const result = await authService.loginWithWallet(data);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/auth/connect-wallet', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const data = walletLoginSchema.parse(req.body);
+      const result = await authService.connectWallet(req.user!.id, data);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/auth/logout', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.split(' ')[1];
+      if (token) {
+        await authService.logout(token);
       }
-      res.json(user);
+      res.json({ message: 'Logged out successfully' });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/auth/nonce', (req, res) => {
+    const nonce = authService.generateNonce();
+    res.json({ nonce });
+  });
+
+  app.post('/api/auth/wallet-message', (req, res) => {
+    const { walletAddress, nonce } = req.body;
+    if (!walletAddress || !nonce) {
+      return res.status(400).json({ message: 'Wallet address and nonce required' });
+    }
+    const message = authService.createAuthMessage(walletAddress, nonce);
+    res.json({ message });
+  });
+
+  app.get('/api/auth/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    res.json(req.user);
+  });
+  
+  // Get current user (fallback to default for testing)
+  app.get("/api/user", optionalAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user) {
+        res.json(req.user);
+      } else {
+        // Fallback to default user if not authenticated (for backward compatibility)
+        const user = await storage.getUser("default-user");
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        res.json(user);
+      }
     } catch (error) {
       res.status(500).json({ message: "Error fetching user" });
     }
