@@ -1,3 +1,34 @@
+/**
+ * Form Component System - Accessible Form Controls
+ * 
+ * Comprehensive form system built on React Hook Form and Radix UI primitives
+ * for creating accessible, validated forms throughout the Coral8 application.
+ * 
+ * Components:
+ * - Form: Root provider that wraps form context
+ * - FormField: Controlled field wrapper with validation
+ * - FormItem: Container for field with proper spacing
+ * - FormLabel: Accessible label with required indicators
+ * - FormControl: Input wrapper with error state management
+ * - FormDescription: Helper text for additional context
+ * - FormMessage: Error message display with ARIA attributes
+ * 
+ * Features:
+ * - Full accessibility with ARIA attributes and labels
+ * - Automatic error state management and display
+ * - Integration with Zod validation schemas
+ * - Consistent styling aligned with design system
+ * - Mobile-optimized input controls and feedback
+ * - Screen reader friendly error announcements
+ * 
+ * Usage in Coral8:
+ * - Labor logging forms with type and time validation
+ * - User profile editing with cultural information
+ * - Marketplace item creation with pricing validation
+ * - Governance proposal submission with content validation
+ * - Authentication forms with security requirements
+ */
+
 "use client"
 
 import * as React from "react"

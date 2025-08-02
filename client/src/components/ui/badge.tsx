@@ -1,3 +1,24 @@
+/**
+ * Badge Component - Status and Category Indicators
+ * 
+ * Small visual indicators used throughout Coral8 to show status,
+ * categories, and other metadata with consistent styling.
+ * 
+ * Features:
+ * - Multiple variants (default, secondary, destructive, outline)
+ * - Consistent sizing and spacing for visual hierarchy
+ * - Integration with oceanic color palette
+ * - Accessibility with proper contrast ratios
+ * 
+ * Usage in Coral8:
+ * - Labor type indicators with cultural value multipliers
+ * - Token status badges (COW1, COW2, COW3)
+ * - Governance proposal status (active, voting, completed)
+ * - Marketplace item categories and pricing tiers
+ * - User achievement and contribution levels
+ * - Activity status indicators (online, active, away)
+ */
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
