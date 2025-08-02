@@ -73,7 +73,7 @@ export async function setupGoogleAuth(app: Express) {
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/auth/google/callback`,
+          callbackURL: `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}/auth/google/callback`,
           scope: ["profile", "email"],
         },
         async (accessToken: string, refreshToken: string, profile: any, done: any) => {
