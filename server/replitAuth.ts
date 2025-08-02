@@ -94,9 +94,8 @@ export async function setupAuth(app: Express) {
   app.get("/api/login", async (req, res) => {
     try {
       const config = await getOidcConfig();
-      const authUrl = client.buildAuthorizationUrl(config, {
-        client_id: process.env.REPL_ID!,
-        redirect_uri: `${req.protocol}://${req.hostname}/api/callback`,
+      const authUrl = client.buildAuthorizationUrl(config, process.env.REPL_ID!, {
+        redirect_uri: `https://${req.hostname}/api/callback`,
         scope: "openid email profile",
         response_type: "code",
         prompt: "login",
@@ -122,7 +121,7 @@ export async function setupAuth(app: Express) {
 
       const tokens = await client.authorizationCodeGrant(config, process.env.REPL_ID!, {
         code: code as string,
-        redirect_uri: `${req.protocol}://${req.hostname}/api/callback`,
+        redirect_uri: `https://${req.hostname}/api/callback`,
       });
 
       const claims = tokens.claims();
