@@ -239,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (currentStats) {
         const newMonthlyEarnings = parseFloat(currentStats.monthlyEarnings || "0") + cowTokensEarned;
         const newFocusScore = Math.min((currentStats.focusScore || 0) + 1, 10);
-        await storage.updateUserStats("default-user" || "", {
+        await storage.updateUserStats("default-user", {
           monthlyEarnings: newMonthlyEarnings.toString(),
           focusScore: newFocusScore
         });
