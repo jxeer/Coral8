@@ -107,7 +107,10 @@ export function WalletConnection({ showFullCard = true, className = '' }: Wallet
         <Button
           onClick={handleConnect}
           disabled={!isMetaMaskInstalled || isConnecting}
-          className={`bg-orange-500 hover:bg-orange-600 text-white font-medium border border-orange-300 shadow-md ${className}`}
+          className={`${!isMetaMaskInstalled || isConnecting 
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+            : 'bg-orange-500 hover:bg-orange-600 text-white'
+          } font-medium border border-orange-300 shadow-md transition-all duration-200 ${className}`}
         >
           {isConnecting ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -190,7 +193,10 @@ export function WalletConnection({ showFullCard = true, className = '' }: Wallet
             <Button
               onClick={handleConnect}
               disabled={!isMetaMaskInstalled || isConnecting}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-medium border border-orange-300 shadow-md"
+              className={`${!isMetaMaskInstalled || isConnecting 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300' 
+                : 'bg-orange-500 hover:bg-orange-600 text-white'
+              } font-medium border border-orange-300 shadow-md transition-all duration-200`}
               size="lg"
             >
               {isConnecting ? (

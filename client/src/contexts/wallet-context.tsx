@@ -64,15 +64,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   // Check if MetaMask is installed
   useEffect(() => {
     const checkMetaMask = () => {
-      console.log('Checking MetaMask installation...', { 
-        windowUndefined: typeof window === 'undefined',
-        ethereumExists: !!window.ethereum,
-        ethereumValue: window.ethereum 
-      });
-      
       if (typeof window !== 'undefined' && window.ethereum) {
         setIsMetaMaskInstalled(true);
-        console.log('MetaMask detected and installed state set to true');
         
         // Listen for account changes
         window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -82,7 +75,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         checkConnection();
       } else {
         setIsMetaMaskInstalled(false);
-        console.log('MetaMask not detected, installed state set to false');
       }
     };
 
