@@ -107,7 +107,7 @@ export function WalletConnection({ showFullCard = true, className = '' }: Wallet
         <Button
           onClick={handleConnect}
           disabled={!isMetaMaskInstalled || isConnecting}
-          className={`bg-deep-teal hover:bg-deep-teal/90 text-white ${className}`}
+          className={`bg-coral hover:bg-coral/90 text-white font-medium border-0 ${className}`}
         >
           {isConnecting ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -190,7 +190,7 @@ export function WalletConnection({ showFullCard = true, className = '' }: Wallet
             <Button
               onClick={handleConnect}
               disabled={!isMetaMaskInstalled || isConnecting}
-              className="bg-deep-teal hover:bg-deep-teal/90 text-white"
+              className="bg-coral hover:bg-coral/90 text-white font-medium border-0"
               size="lg"
             >
               {isConnecting ? (
