@@ -107,7 +107,12 @@ export function WalletConnection({ showFullCard = true, className = '' }: Wallet
         <Button
           onClick={handleConnect}
           disabled={!isMetaMaskInstalled || isConnecting}
-          className={`bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:text-gray-800 disabled:cursor-not-allowed text-white font-medium border border-orange-300 disabled:border-gray-400 shadow-md transition-all duration-200 ${className}`}
+          className={`bg-orange-500 hover:bg-orange-600 text-white font-medium border border-orange-300 shadow-md transition-all duration-200 ${className}`}
+          style={{
+            backgroundColor: (!isMetaMaskInstalled || isConnecting) ? '#9ca3af' : '#f97316',
+            color: (!isMetaMaskInstalled || isConnecting) ? '#374151' : '#ffffff',
+            borderColor: (!isMetaMaskInstalled || isConnecting) ? '#9ca3af' : '#fed7aa'
+          }}
         >
           {isConnecting ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -190,7 +195,12 @@ export function WalletConnection({ showFullCard = true, className = '' }: Wallet
             <Button
               onClick={handleConnect}
               disabled={!isMetaMaskInstalled || isConnecting}
-              className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:text-gray-800 disabled:cursor-not-allowed text-white font-medium border border-orange-300 disabled:border-gray-400 shadow-md transition-all duration-200"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-medium border border-orange-300 shadow-md transition-all duration-200"
+              style={{
+                backgroundColor: (!isMetaMaskInstalled || isConnecting) ? '#9ca3af' : '#f97316',
+                color: (!isMetaMaskInstalled || isConnecting) ? '#374151' : '#ffffff',
+                borderColor: (!isMetaMaskInstalled || isConnecting) ? '#9ca3af' : '#fed7aa'
+              }}
               size="lg"
             >
               {isConnecting ? (
