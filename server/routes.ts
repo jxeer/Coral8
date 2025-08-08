@@ -168,9 +168,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user token balances
-  app.get("/api/balances", async (req, res) => {
+  app.get("/api/balances", isAuthenticated, async (req: any, res) => {
     try {
-      const balance = await storage.getTokenBalance("default-user");
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const balance = await storage.getTokenBalance(userId);
       if (!balance) {
         return res.status(404).json({ message: "Balance not found" });
       }
@@ -181,9 +186,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user stats
-  app.get("/api/stats", async (req, res) => {
+  app.get("/api/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getUserStats("default-user");
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const stats = await storage.getUserStats(userId);
       if (!stats) {
         return res.status(404).json({ message: "Stats not found" });
       }
