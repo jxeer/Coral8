@@ -320,6 +320,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user wallet address
+  app.post("/api/user/wallet", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { walletAddress } = req.body;
+      if (!walletAddress || typeof walletAddress !== 'string') {
+        return res.status(400).json({ message: "Valid wallet address is required" });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, { walletAddress });
+      res.json({ message: "Wallet address updated successfully", user: updatedUser });
+    } catch (error) {
+      console.error("Error updating wallet address:", error);
+      res.status(500).json({ message: "Failed to update wallet address" });
+    }
+  });
+
   // Simulate decay process
   app.post("/api/decay", async (req, res) => {
     try {

@@ -10,7 +10,7 @@ import { Sidebar } from "../components/sidebar";
 import { MobileNavigation } from "../components/mobile-navigation";
 import { MobileDashboard } from "../components/mobile-dashboard";
 import { PWAInstallBanner } from "../components/pwa-install-banner";
-import { WalletConnectionButton } from "../components/wallet-connection-button";
+import { WalletConnection } from "../components/wallet-connection";
 import { DashboardCards } from "../components/dashboard-cards";
 import { LaborLogging } from "../components/labor-logging";
 import { BalanceDisplay } from "../components/balance-display";
@@ -48,12 +48,10 @@ export default function Dashboard() {
               <h2 className="text-2xl lg:text-3xl font-bold text-deep-navy mb-2">Welcome back</h2>
               <p className="text-moon-gray">Manage your labor contributions and earn COW tokens</p>
             </div>
-            {/* Mobile Wallet Connection */}
-            {isMobile && (
-              <div className="mt-4 sm:mt-0">
-                <WalletConnectionButton />
-              </div>
-            )}
+            {/* Web3 Wallet Integration */}
+            <div className="mt-4 sm:mt-0">
+              <WalletConnection showFullCard={false} />
+            </div>
           </div>
         </div>
 
