@@ -132,7 +132,12 @@ export function WalletConnectionButton({
     <Button
       onClick={connectWallet}
       disabled={isConnecting}
-      className={`relative overflow-hidden group ${className}`}
+      className={`relative overflow-hidden group ${isConnecting ? 'bg-gray-400 text-gray-800 border-gray-400' : 'bg-orange-500 hover:bg-orange-600 text-white border-orange-300'} ${className}`}
+      style={{
+        backgroundColor: isConnecting ? '#9ca3af' : '#f97316',
+        color: isConnecting ? '#374151' : '#ffffff',
+        borderColor: isConnecting ? '#9ca3af' : '#fed7aa'
+      }}
       {...props}
     >
       {/* Animated background waves */}
