@@ -50,7 +50,12 @@ export default function Dashboard() {
             </div>
             {/* Web3 Wallet Integration */}
             <div className="mt-4 sm:mt-0">
-              <WalletConnection showFullCard={false} />
+              <button 
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-md border border-orange-300 shadow-md transition-colors"
+                onClick={() => console.log('Connect wallet clicked')}
+              >
+                Connect Wallet
+              </button>
             </div>
           </div>
         </div>
