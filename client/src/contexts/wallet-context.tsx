@@ -64,8 +64,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   // Check if MetaMask is installed
   useEffect(() => {
     const checkMetaMask = () => {
+      console.log('Checking MetaMask installation...', { 
+        windowUndefined: typeof window === 'undefined',
+        ethereumExists: !!window.ethereum,
+        ethereumValue: window.ethereum 
+      });
+      
       if (typeof window !== 'undefined' && window.ethereum) {
         setIsMetaMaskInstalled(true);
+        console.log('MetaMask detected and installed state set to true');
         
         // Listen for account changes
         window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -75,13 +82,21 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         checkConnection();
       } else {
         setIsMetaMaskInstalled(false);
+        console.log('MetaMask not detected, installed state set to false');
       }
     };
 
-    checkMetaMask();
+    // Add a small delay to ensure DOM is ready and MetaMask has loaded
+    const timer = setTimeout(checkMetaMask, 100);
     
-    // Cleanup listeners
+    // Also check immediately if window.ethereum is already available
+    if (typeof window !== 'undefined' && window.ethereum) {
+      checkMetaMask();
+    }
+    
+    // Cleanup
     return () => {
+      clearTimeout(timer);
       if (window.ethereum) {
         window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
         window.ethereum.removeListener('chainChanged', handleChainChanged);

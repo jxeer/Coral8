@@ -96,21 +96,19 @@ function Router() {
         /* Protected routes - shown when user is authenticated */
         <>
           <AppProvider>
-            <WalletProvider>
-              <div className="min-h-screen bg-deep-navy">
-                {/* Main navigation sidebar */}
-                <Sidebar />
-                {/* Main content area with left margin for sidebar */}
-                <main className="lg:ml-64 min-h-screen">
-                  <Route path="/" component={Dashboard} />
-                  <Route path="/contracts" component={Contracts} />
-                  <Route path="/invoices" component={Invoices} />
-                  <Route path="/clients" component={Clients} />
-                  <Route path="/tasks" component={Tasks} />
-                  <Route path="/web3" component={Web3} />
-                </main>
-              </div>
-            </WalletProvider>
+            <div className="min-h-screen bg-deep-navy">
+              {/* Main navigation sidebar */}
+              <Sidebar />
+              {/* Main content area with left margin for sidebar */}
+              <main className="lg:ml-64 min-h-screen">
+                <Route path="/" component={Dashboard} />
+                <Route path="/contracts" component={Contracts} />
+                <Route path="/invoices" component={Invoices} />
+                <Route path="/clients" component={Clients} />
+                <Route path="/tasks" component={Tasks} />
+                <Route path="/web3" component={Web3} />
+              </main>
+            </div>
           </AppProvider>
         </>
       )}
@@ -129,8 +127,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Router />
-        <Toaster />
+        <WalletProvider>
+          <Router />
+          <Toaster />
+        </WalletProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
