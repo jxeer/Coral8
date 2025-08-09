@@ -6,6 +6,7 @@
  */
 
 import { WalletConnection } from "@/components/wallet-connection";
+import { TokenTransfer } from "@/components/token-transfer";
 import { useWallet } from "@/contexts/wallet-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,15 +36,18 @@ export default function Web3() {
         {/* Web3 Features Available */}
         {isConnected && (
           <>
+            {/* Token Transfer */}
+            <TokenTransfer />
+
             {/* COW Token Operations */}
             <Card className="border-deep-teal/20">
               <CardHeader>
                 <CardTitle className="flex items-center text-deep-navy">
                   <Coins className="w-5 h-5 mr-2 text-deep-teal" />
-                  COW Token Operations
+                  Token Overview
                 </CardTitle>
                 <CardDescription>
-                  Interact with Coral8's three-tier token system on Optimism
+                  Monitor your COW token balances and system overview
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -51,24 +55,26 @@ export default function Web3() {
                   <div className="text-center p-3 bg-seafoam/10 rounded-lg">
                     <div className="text-lg font-bold text-deep-navy">COW1</div>
                     <div className="text-sm text-moon-gray">Base Token</div>
+                    <div className="text-xs text-deep-teal mt-1">Balance: 0</div>
                   </div>
                   <div className="text-center p-3 bg-seafoam/10 rounded-lg">
                     <div className="text-lg font-bold text-deep-navy">COW2</div>
                     <div className="text-sm text-moon-gray">Enhanced</div>
+                    <div className="text-xs text-deep-teal mt-1">Balance: 0</div>
                   </div>
                   <div className="text-center p-3 bg-seafoam/10 rounded-lg">
                     <div className="text-lg font-bold text-deep-navy">COW3</div>
                     <div className="text-sm text-moon-gray">Premium</div>
+                    <div className="text-xs text-deep-teal mt-1">Balance: 0</div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Button className="w-full bg-deep-teal hover:bg-deep-teal/90 text-white" disabled>
-                    <Coins className="w-4 h-4 mr-2" />
-                    Transfer COW Tokens
-                  </Button>
                   <Button variant="outline" className="w-full border-deep-teal text-deep-teal" disabled>
                     View Token History
+                  </Button>
+                  <Button variant="outline" className="w-full border-deep-teal text-deep-teal" disabled>
+                    Token Analytics
                   </Button>
                 </div>
                 

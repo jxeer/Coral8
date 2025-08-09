@@ -47,7 +47,7 @@ import { authService } from "./auth";
 import { authenticateToken, optionalAuth, type AuthenticatedRequest } from "./middleware";
 import { setupGoogleAuth, isAuthenticated } from "./google-auth";
 import { loginSchema, registerSchema, walletLoginSchema } from "@shared/schema";
-import { insertLaborLogSchema, insertVoteSchema } from "@shared/schema";
+import { insertLaborLogSchema, insertVoteSchema, insertTokenTransferSchema } from "@shared/schema";
 import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -317,6 +317,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Error fetching marketplace items" });
+    }
+  });
+
+  // Token Transfer endpoints
+  app.post("/api/token-transfer", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertTokenTransferSchema.parse(req.body);
+      const authReq = req as AuthenticatedRequest;
+      
+      // Create transfer record
+      const transfer = await storage.createTokenTransfer({
+        ...validatedData,
+        fromUserId: authReq.userId,
+        status: 'pending'
+      });
+
+      res.status(201).json(transfer);
+    } catch (error) {
+      console.error("Error creating token transfer:", error);
+      res.status(500).json({ message: "Failed to create token transfer" });
+    }
+  });
+
+  app.get("/api/token-transfers", authenticateToken, async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const transfers = await storage.getTokenTransfers(authReq.userId);
+      res.json(transfers);
+    } catch (error) {
+      console.error("Error fetching token transfers:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/token-transfers/address/:address", authenticateToken, async (req, res) => {
+    try {
+      const { address } = req.params;
+      const transfers = await storage.getTokenTransfersByAddress(address);
+      res.json(transfers);
+    } catch (error) {
+      console.error("Error fetching transfers by address:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/token-transfer/:id/status", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, transactionHash, blockNumber } = req.body;
+      
+      await storage.updateTokenTransferStatus(id, status, transactionHash, blockNumber);
+      res.json({ message: "Transfer status updated" });
+    } catch (error) {
+      console.error("Error updating transfer status:", error);
+      res.status(500).json({ message: "Failed to update transfer status" });
     }
   });
 
