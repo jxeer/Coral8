@@ -12,11 +12,12 @@ import {
   type GovernanceProposal, type InsertGovernanceProposal,
   type Vote, type InsertVote,
   type MarketplaceItem, type InsertMarketplaceItem,
-  type UserStats
+  type UserStats,
+  type TokenTransfer, type InsertTokenTransfer
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, laborLogs, tokenBalances, governanceProposals, votes, marketplaceItems, userStats } from "@shared/schema";
+import { users, laborLogs, tokenBalances, governanceProposals, votes, marketplaceItems, userStats, tokenTransfers } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 
 /**
@@ -61,6 +62,12 @@ export interface IStorage {
   // User Stats
   getUserStats(userId: string): Promise<UserStats | undefined>;
   updateUserStats(userId: string, stats: Partial<UserStats>): Promise<UserStats>;
+
+  // Token Transfers
+  createTokenTransfer(transfer: InsertTokenTransfer): Promise<TokenTransfer>;
+  getTokenTransfers(userId: string): Promise<TokenTransfer[]>;
+  getTokenTransfersByAddress(address: string): Promise<TokenTransfer[]>;
+  updateTokenTransferStatus(transferId: string, status: string, transactionHash?: string, blockNumber?: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -71,6 +78,7 @@ export class MemStorage implements IStorage {
   private votes: Map<string, Vote>;
   private marketplaceItems: Map<string, MarketplaceItem>;
   private userStats: Map<string, UserStats>;
+  private tokenTransfers: Map<string, TokenTransfer>;
 
   constructor() {
     this.users = new Map();
@@ -80,6 +88,7 @@ export class MemStorage implements IStorage {
     this.votes = new Map();
     this.marketplaceItems = new Map();
     this.userStats = new Map();
+    this.tokenTransfers = new Map();
 
     // Initialize with sample data
     this.initializeSampleData();
@@ -430,6 +439,47 @@ export class MemStorage implements IStorage {
     this.userStats.set(userId, updated);
     return updated;
   }
+
+  // Token Transfer methods
+  async createTokenTransfer(transfer: InsertTokenTransfer): Promise<TokenTransfer> {
+    const id = randomUUID();
+    const tokenTransfer: TokenTransfer = {
+      ...transfer,
+      id,
+      timestamp: new Date(),
+      confirmedAt: null,
+    };
+    this.tokenTransfers.set(id, tokenTransfer);
+    return tokenTransfer;
+  }
+
+  async getTokenTransfers(userId: string): Promise<TokenTransfer[]> {
+    return Array.from(this.tokenTransfers.values()).filter(
+      transfer => transfer.fromUserId === userId
+    );
+  }
+
+  async getTokenTransfersByAddress(address: string): Promise<TokenTransfer[]> {
+    return Array.from(this.tokenTransfers.values()).filter(
+      transfer => transfer.fromAddress === address || transfer.toAddress === address
+    );
+  }
+
+  async updateTokenTransferStatus(
+    transferId: string, 
+    status: string, 
+    transactionHash?: string, 
+    blockNumber?: number
+  ): Promise<void> {
+    const transfer = this.tokenTransfers.get(transferId);
+    if (transfer) {
+      transfer.status = status;
+      if (transactionHash) transfer.transactionHash = transactionHash;
+      if (blockNumber) transfer.blockNumber = blockNumber;
+      if (status === 'confirmed') transfer.confirmedAt = new Date();
+      this.tokenTransfers.set(transferId, transfer);
+    }
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -586,6 +636,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userStats.userId, userId))
       .returning();
     return updatedStats;
+  }
+
+  // Token Transfer methods for DatabaseStorage
+  async createTokenTransfer(transfer: InsertTokenTransfer): Promise<TokenTransfer> {
+    const [newTransfer] = await db.insert(tokenTransfers).values(transfer).returning();
+    return newTransfer;
+  }
+
+  async getTokenTransfers(userId: string): Promise<TokenTransfer[]> {
+    return await db.select().from(tokenTransfers)
+      .where(eq(tokenTransfers.fromUserId, userId))
+      .orderBy(desc(tokenTransfers.timestamp));
+  }
+
+  async getTokenTransfersByAddress(address: string): Promise<TokenTransfer[]> {
+    return await db.select().from(tokenTransfers)
+      .where(eq(tokenTransfers.fromAddress, address))
+      .orderBy(desc(tokenTransfers.timestamp));
+  }
+
+  async updateTokenTransferStatus(
+    transferId: string, 
+    status: string, 
+    transactionHash?: string, 
+    blockNumber?: number
+  ): Promise<void> {
+    const updateData: any = { status };
+    if (transactionHash) updateData.transactionHash = transactionHash;
+    if (blockNumber) updateData.blockNumber = blockNumber;
+    if (status === 'confirmed') updateData.confirmedAt = new Date();
+
+    await db.update(tokenTransfers)
+      .set(updateData)
+      .where(eq(tokenTransfers.id, transferId));
   }
 }
 

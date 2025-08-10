@@ -73,10 +73,10 @@ export async function setupGoogleAuth(app: Express) {
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: "/auth/google/callback",
+          callbackURL: `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}/auth/google/callback`,
           scope: ["profile", "email"],
         },
-        async (accessToken, refreshToken, profile, done) => {
+        async (accessToken: string, refreshToken: string, profile: any, done: any) => {
           try {
             // Extract user information from Google profile
             const googleId = profile.id;
@@ -109,6 +109,12 @@ export async function setupGoogleAuth(app: Express) {
                 profileImageUrl: profileImageUrl || null,
                 username: email?.split('@')[0] || `user_${googleId}`,
                 authMethod: "google",
+                walletAddress: null,
+                passwordHash: null,
+                bio: null,
+                isEmailVerified: true,
+                isWalletVerified: false,
+                lastLogin: new Date(),
               });
               
               console.log("Created new user:", user.id);
@@ -138,14 +144,18 @@ export async function setupGoogleAuth(app: Express) {
 
   // Passport serialization
   passport.serializeUser((user: Express.User, done) => {
+    console.log("Serializing user:", (user as User).id);
     done(null, (user as User).id);
   });
 
   passport.deserializeUser(async (id: string, done) => {
     try {
+      console.log("Deserializing user ID:", id);
       const user = await storage.getUser(id);
+      console.log("Deserialized user:", user ? "found" : "not found");
       done(null, user);
     } catch (error) {
+      console.error("Deserialize error:", error);
       done(error);
     }
   });
@@ -153,16 +163,68 @@ export async function setupGoogleAuth(app: Express) {
   // Google OAuth Routes
   app.get("/auth/google", (req, res, next) => {
     console.log("Starting Google OAuth flow");
+    console.log("Callback URL configured as:", `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}/auth/google/callback`);
     passport.authenticate("google", {
       scope: ["profile", "email"],
     })(req, res, next);
   });
 
+  // Direct login route for existing user
+  app.post("/auth/google/direct-login", async (req, res) => {
+    try {
+      const { googleId } = req.body;
+      if (!googleId) {
+        return res.status(400).json({ message: "Google ID required" });
+      }
+
+      const user = await storage.getUserByGoogleId?.(googleId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Manually create session
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Direct login error:", err);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        res.json({ message: "Login successful", user });
+      });
+    } catch (error) {
+      console.error("Direct login error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/auth/google/callback", (req, res, next) => {
-    console.log("Google OAuth callback received");
-    passport.authenticate("google", {
-      successRedirect: "/",
-      failureRedirect: "/login?error=oauth_failed",
+    console.log("Google OAuth callback received with query:", req.query);
+    passport.authenticate("google", (err: any, user: any) => {
+      if (err || !user) {
+        console.error("OAuth authentication failed:", err);
+        return res.redirect("/?error=oauth_failed");
+      }
+      
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Login error:", loginErr);
+          return res.redirect("/?error=login_failed");
+        }
+        
+        // Store user ID in session for auth check
+        (req.session as any).userId = user.id;
+        
+        // Close popup and redirect parent window
+        res.send(`
+          <script>
+            if (window.opener) {
+              window.opener.location.reload();
+              window.close();
+            } else {
+              window.location.href = '/';
+            }
+          </script>
+        `);
+      });
     })(req, res, next);
   });
 

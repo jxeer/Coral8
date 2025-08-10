@@ -24,6 +24,7 @@ const navigation = [
   { name: 'Invoices', href: '/invoices', icon: Receipt },
   { name: 'Clients', href: '/clients', icon: Users },
   { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+  { name: 'Web3', href: '/web3', icon: Wallet },
 ];
 
 export function Sidebar() {

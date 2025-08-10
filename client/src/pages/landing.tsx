@@ -25,7 +25,26 @@ export function Landing() {
           </div>
           <Button 
             className="bg-seafoam hover:bg-seafoam/90 text-deep-navy"
-            onClick={() => window.location.href = '/auth/google'}
+            onClick={async () => {
+              // Try direct login for existing user first
+              try {
+                const response = await fetch('/auth/google/direct-login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ googleId: '115048327443530561302' })
+                });
+                
+                if (response.ok) {
+                  window.location.reload();
+                  return;
+                }
+              } catch (error) {
+                console.log("Direct login failed, trying OAuth");
+              }
+              
+              // Fallback to OAuth popup
+              window.open('/auth/google', '_blank', 'width=500,height=600,scrollbars=yes,resizable=yes');
+            }}
           >
             Sign in with Google <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
@@ -47,7 +66,26 @@ export function Landing() {
             <Button 
               size="lg" 
               className="bg-seafoam hover:bg-seafoam/90 text-deep-navy font-semibold px-8 py-4 text-lg"
-              onClick={() => window.location.href = '/auth/google'}
+              onClick={async () => {
+                // Try direct login for existing user first
+                try {
+                  const response = await fetch('/auth/google/direct-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ googleId: '115048327443530561302' })
+                  });
+                  
+                  if (response.ok) {
+                    window.location.reload();
+                    return;
+                  }
+                } catch (error) {
+                  console.log("Direct login failed, trying OAuth");
+                }
+                
+                // Fallback to OAuth popup
+                window.open('/auth/google', '_blank', 'width=500,height=600,scrollbars=yes,resizable=yes');
+              }}
             >
               Sign in with Google <ArrowRight className="w-5 h-5 ml-2" />
             </Button>

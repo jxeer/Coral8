@@ -87,6 +87,7 @@ export const sessions = pgTable(
  */
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  googleId: varchar("google_id").unique(),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -94,7 +95,6 @@ export const users = pgTable("users", {
   walletAddress: varchar("wallet_address").unique(),
   username: varchar("username").unique(),
   passwordHash: varchar("password_hash"),
-  googleId: varchar("google_id").unique(), // Added for Google OAuth
   bio: text("bio"),
   isEmailVerified: boolean("is_email_verified").default(false),
   isWalletVerified: boolean("is_wallet_verified").default(false),
@@ -253,6 +253,42 @@ export const marketplaceItems = pgTable("marketplace_items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+/**
+ * Token Transfers Table - Web3 Transaction Records
+ * 
+ * Tracks all COW token transfers between wallet addresses on the Optimism network.
+ * Essential for maintaining transaction history and enabling blockchain integration.
+ * Supports the three-tier token system with comprehensive transaction metadata.
+ * 
+ * Transfer Types:
+ * - COW1: Base labor rewards and general transactions
+ * - COW2: Enhanced cultural work premiums and governance stakes
+ * - COW3: Leadership tokens and premium community functions
+ * 
+ * Blockchain Integration:
+ * - Links to Optimism network transactions via transaction hash
+ * - Tracks gas costs and block confirmations
+ * - Maintains status for pending/confirmed/failed transactions
+ * - Enables Web3 wallet integration and smart contract interactions
+ */
+export const tokenTransfers = pgTable("token_transfers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fromUserId: varchar("from_user_id").references(() => users.id, { onDelete: 'set null' }),
+  fromAddress: text("from_address").notNull(),
+  toAddress: text("to_address").notNull(),
+  tokenType: text("token_type").notNull(), // 'COW1', 'COW2', 'COW3'
+  amount: text("amount").notNull(), // Stored as string for precision
+  transactionHash: text("transaction_hash"),
+  blockNumber: integer("block_number"),
+  gasUsed: text("gas_used"),
+  gasPrice: text("gas_price"),
+  status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'failed'
+  networkId: integer("network_id").default(10), // Optimism network ID
+  timestamp: timestamp("timestamp").defaultNow(),
+  confirmedAt: timestamp("confirmed_at"),
+  failureReason: text("failure_reason"),
+});
+
 export const userStats = pgTable("user_stats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
@@ -304,9 +340,17 @@ export const insertMarketplaceItemSchema = createInsertSchema(marketplaceItems).
   createdAt: true,
 });
 
+export const insertTokenTransferSchema = createInsertSchema(tokenTransfers).omit({
+  id: true,
+  timestamp: true,
+  confirmedAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type TokenTransfer = typeof tokenTransfers.$inferSelect;
+export type InsertTokenTransfer = z.infer<typeof insertTokenTransferSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 
 export type InsertLaborLog = z.infer<typeof insertLaborLogSchema>;

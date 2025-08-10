@@ -47,7 +47,7 @@ import { authService } from "./auth";
 import { authenticateToken, optionalAuth, type AuthenticatedRequest } from "./middleware";
 import { setupGoogleAuth, isAuthenticated } from "./google-auth";
 import { loginSchema, registerSchema, walletLoginSchema } from "@shared/schema";
-import { insertLaborLogSchema, insertVoteSchema } from "@shared/schema";
+import { insertLaborLogSchema, insertVoteSchema, insertTokenTransferSchema } from "@shared/schema";
 import { calculateCOWTokens, getLaborMultiplier } from "../client/src/lib/labor-index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -142,8 +142,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // req.user now contains the User object from Google OAuth
-      res.json(req.user);
+      // Handle Google OAuth user data
+      if (req.user && req.user.id) {
+        const user = await storage.getUser(req.user.id);
+        res.json(user);
+      } else {
+        res.status(401).json({ message: "Unauthorized" });
+      }
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -163,9 +168,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user token balances
-  app.get("/api/balances", async (req, res) => {
+  app.get("/api/balances", isAuthenticated, async (req: any, res) => {
     try {
-      const balance = await storage.getTokenBalance("default-user");
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const balance = await storage.getTokenBalance(userId);
       if (!balance) {
         return res.status(404).json({ message: "Balance not found" });
       }
@@ -176,9 +186,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user stats
-  app.get("/api/stats", async (req, res) => {
+  app.get("/api/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getUserStats("default-user");
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const stats = await storage.getUserStats(userId);
       if (!stats) {
         return res.status(404).json({ message: "Stats not found" });
       }
@@ -224,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (currentStats) {
         const newMonthlyEarnings = parseFloat(currentStats.monthlyEarnings || "0") + cowTokensEarned;
         const newFocusScore = Math.min((currentStats.focusScore || 0) + 1, 10);
-        await storage.updateUserStats("default-user" || "", {
+        await storage.updateUserStats("default-user", {
           monthlyEarnings: newMonthlyEarnings.toString(),
           focusScore: newFocusScore
         });
@@ -302,6 +317,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Error fetching marketplace items" });
+    }
+  });
+
+  // Token Transfer endpoints
+  app.post("/api/token-transfer", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertTokenTransferSchema.parse(req.body);
+      const authReq = req as AuthenticatedRequest;
+      
+      // Create transfer record
+      const transfer = await storage.createTokenTransfer({
+        ...validatedData,
+        fromUserId: authReq.userId,
+        status: 'pending'
+      });
+
+      res.status(201).json(transfer);
+    } catch (error) {
+      console.error("Error creating token transfer:", error);
+      res.status(500).json({ message: "Failed to create token transfer" });
+    }
+  });
+
+  app.get("/api/token-transfers", authenticateToken, async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const transfers = await storage.getTokenTransfers(authReq.userId);
+      res.json(transfers);
+    } catch (error) {
+      console.error("Error fetching token transfers:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/token-transfers/address/:address", authenticateToken, async (req, res) => {
+    try {
+      const { address } = req.params;
+      const transfers = await storage.getTokenTransfersByAddress(address);
+      res.json(transfers);
+    } catch (error) {
+      console.error("Error fetching transfers by address:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/token-transfer/:id/status", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, transactionHash, blockNumber } = req.body;
+      
+      await storage.updateTokenTransferStatus(id, status, transactionHash, blockNumber);
+      res.json({ message: "Transfer status updated" });
+    } catch (error) {
+      console.error("Error updating transfer status:", error);
+      res.status(500).json({ message: "Failed to update transfer status" });
+    }
+  });
+
+  // Update user wallet address
+  app.post("/api/user/wallet", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { walletAddress } = req.body;
+      if (!walletAddress || typeof walletAddress !== 'string') {
+        return res.status(400).json({ message: "Valid wallet address is required" });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, { walletAddress });
+      res.json({ message: "Wallet address updated successfully", user: updatedUser });
+    } catch (error) {
+      console.error("Error updating wallet address:", error);
+      res.status(500).json({ message: "Failed to update wallet address" });
     }
   });
 
