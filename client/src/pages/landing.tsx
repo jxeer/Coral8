@@ -50,7 +50,6 @@ export function Landing() {
           </Button>
         </div>
       </header>
-
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto">
@@ -58,10 +57,7 @@ export function Landing() {
             Where Culture Meets 
             <span className="bg-gradient-to-r from-seafoam to-ocean-teal bg-clip-text text-transparent"> Economy</span>
           </h1>
-          <p className="text-xl md:text-2xl text-moon-gray mb-8 leading-relaxed">
-            Log culturally rooted labor, earn COW tokens, and participate in community governance. 
-            Built to honor ancestral wisdom while embracing economic innovation.
-          </p>
+          <p className="text-xl md:text-2xl text-moon-gray mb-8 leading-relaxed">Log culturally rooted labor, earn cowrie coins, and participate in community governance. Built to honor ancestral wisdom while embracing economic innovation.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
@@ -104,7 +100,6 @@ export function Landing() {
           </div>
         </div>
       </section>
-
       {/* Features Grid */}
       <section className="container mx-auto px-6 py-20">
         <div className="text-center mb-16">
@@ -184,7 +179,6 @@ export function Landing() {
           </div>
         </div>
       </section>
-
       {/* Call to Action */}
       <section className="container mx-auto px-6 py-20">
         <div className="bg-gradient-to-r from-seafoam/10 to-ocean-teal/10 rounded-3xl p-12 text-center border border-seafoam/20">
@@ -205,7 +199,6 @@ export function Landing() {
           </Button>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="container mx-auto px-6 py-12 border-t border-seafoam/20">
         <div className="flex flex-col md:flex-row items-center justify-between">
