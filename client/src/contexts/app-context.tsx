@@ -21,7 +21,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const refreshData = async () => {
     try {
       // Fetch user data
-      const userResponse = await fetch('/api/user');
+      const userResponse = await fetch('/api/auth/user');
       if (userResponse.ok) {
         const userData = await userResponse.json();
         setUser(userData);
