@@ -61,6 +61,7 @@ export interface IStorage {
 
   // User Stats
   getUserStats(userId: string): Promise<UserStats | undefined>;
+  createUserStats(userId: string): Promise<UserStats>;
   updateUserStats(userId: string, stats: Partial<UserStats>): Promise<UserStats>;
 
   // Token Transfers
@@ -415,6 +416,24 @@ export class MemStorage implements IStorage {
     return this.userStats.get(userId);
   }
 
+  async createUserStats(userId: string): Promise<UserStats> {
+    const id = randomUUID();
+    const newStats: UserStats = {
+      id,
+      userId,
+      focusScore: 0,
+      tribeMembers: 0,
+      emotionScore: "5.0",
+      monthlyEarnings: "0",
+      attentionViews: 0,
+      scheduledHours: "0",
+      influenceScore: 0,
+      updatedAt: new Date(),
+    };
+    this.userStats.set(userId, newStats);
+    return newStats;
+  }
+
   async updateUserStats(userId: string, stats: Partial<UserStats>): Promise<UserStats> {
     const existing = this.userStats.get(userId);
     if (!existing) {
@@ -628,6 +647,20 @@ export class DatabaseStorage implements IStorage {
   async getUserStats(userId: string): Promise<UserStats | undefined> {
     const [stats] = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
     return stats || undefined;
+  }
+
+  async createUserStats(userId: string): Promise<UserStats> {
+    const [newStats] = await db.insert(userStats).values({
+      userId,
+      focusScore: 0,
+      tribeMembers: 0,
+      emotionScore: "5.0",
+      monthlyEarnings: "0",
+      attentionViews: 0,
+      scheduledHours: "0",
+      influenceScore: 0,
+    }).returning();
+    return newStats;
   }
 
   async updateUserStats(userId: string, stats: Partial<UserStats>): Promise<UserStats> {

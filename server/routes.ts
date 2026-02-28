@@ -175,9 +175,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const balance = await storage.getTokenBalance(userId);
+      let balance = await storage.getTokenBalance(userId);
       if (!balance) {
-        return res.status(404).json({ message: "Balance not found" });
+        balance = await storage.createTokenBalance({
+          userId,
+          cow1Balance: "0",
+          cow2Balance: "0",
+          cow3Balance: "0",
+        });
       }
       res.json(balance);
     } catch (error) {
@@ -193,9 +198,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const stats = await storage.getUserStats(userId);
+      let stats = await storage.getUserStats(userId);
       if (!stats) {
-        return res.status(404).json({ message: "Stats not found" });
+        stats = await storage.createUserStats(userId);
       }
       res.json(stats);
     } catch (error) {
