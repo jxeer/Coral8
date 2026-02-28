@@ -1,8 +1,18 @@
 /**
  * Dashboard Cards Component
- * Displays key metrics and statistics for authenticated users
- * Features culturally-rooted tracking including tribe members, emotion scoring, and COW earnings
- * Uses gradient designs inspired by oceanic themes and provides real-time progress indicators
+ * Displays seven key metric cards for authenticated users pulled from their UserStats record.
+ *
+ * Cards shown:
+ *   Focus Tracker  - task completion count
+ *   Tribe          - community member count
+ *   Emotion Tracker - average mood score (0-10)
+ *   Money          - COW tokens earned this month (highlighted card)
+ *   Attention      - profile view count
+ *   Time           - scheduled hours this week
+ *   Influence      - reputation / influence points
+ *
+ * While userStats is loading (null), animated skeleton placeholders are shown
+ * so the layout never jumps when data arrives.
  */
 
 import { useAppContext } from "../contexts/app-context";
@@ -14,6 +24,7 @@ import {
 export function DashboardCards() {
   const { userStats } = useAppContext();
 
+  // Show skeleton placeholders while stats are being fetched
   if (!userStats) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -27,6 +38,15 @@ export function DashboardCards() {
     );
   }
 
+  /**
+   * Card definitions — each entry maps a user stat field to its display config.
+   * isHighlight marks the "Money" card which gets a full gradient background
+   * instead of the standard white card treatment.
+   *
+   * attentionViews is divided by 1000 and shown as "Xk" to keep the number compact.
+   * emotionScore and monthlyEarnings are stored as strings for decimal precision,
+   * so they are parsed with parseFloat before display.
+   */
   const cards = [
     {
       title: "Focus Tracker",
@@ -49,6 +69,7 @@ export function DashboardCards() {
     {
       title: "Emotion Tracker",
       description: "Monitor well-being",
+      // Parsed from string — stored as decimal in DB for precision
       value: parseFloat(userStats.emotionScore || "5.0"),
       suffix: "average mood",
       icon: Heart,
@@ -58,16 +79,18 @@ export function DashboardCards() {
     {
       title: "Money",
       description: "Monthly COW earned",
+      // Floor the decimal so we show whole tokens only
       value: Math.floor(parseFloat(userStats.monthlyEarnings || "0")),
       suffix: "COW this month",
       icon: DollarSign,
       gradient: "from-ocean-blue to-ocean-teal",
       badge: "+25%",
-      isHighlight: true
+      isHighlight: true   // Renders with gradient background instead of white
     },
     {
       title: "Attention",
       description: "Visibility and metrics",
+      // Compress large view counts into "Xk" format
       value: `${((userStats.attentionViews || 0) / 1000).toFixed(1)}k`,
       suffix: "profile views",
       icon: Sun,
@@ -102,13 +125,15 @@ export function DashboardCards() {
           <Card
             key={card.title}
             className={`p-6 border border-ocean-teal/20 hover:shadow-lg transition-all transform hover:scale-[1.02] ${
+              // Highlighted card (Money) gets gradient bg; others stay white
               card.isHighlight ? `bg-gradient-to-br ${card.gradient} text-pearl-white` : 'bg-pearl-white'
             }`}
           >
+            {/* Icon + badge row */}
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                 card.isHighlight 
-                  ? 'bg-pearl-white/20' 
+                  ? 'bg-pearl-white/20'           // Frosted look on gradient cards
                   : `bg-gradient-to-br ${card.gradient}`
               }`}>
                 <Icon className={`w-6 h-6 ${
@@ -123,6 +148,8 @@ export function DashboardCards() {
                 {card.badge}
               </span>
             </div>
+
+            {/* Card label and description */}
             <h3 className={`text-lg font-semibold mb-2 ${
               card.isHighlight ? 'text-pearl-white' : 'text-deep-navy'
             }`}>
@@ -133,6 +160,8 @@ export function DashboardCards() {
             }`}>
               {card.description}
             </p>
+
+            {/* Numeric value + unit label */}
             <div className="flex items-center justify-between">
               <span className={`text-2xl font-bold ${
                 card.isHighlight ? 'text-pearl-white' : 'text-deep-navy'
@@ -152,11 +181,16 @@ export function DashboardCards() {
   );
 }
 
+/**
+ * Returns Tailwind colour classes for a card's badge pill.
+ * Each badge string maps to a distinct colour so users can scan
+ * the dashboard at a glance without reading every label.
+ */
 function getBadgeStyles(badge: string) {
   switch (badge) {
     case '+12%':
     case '+25%':
-      return 'bg-seafoam/20 text-ocean-blue';
+      return 'bg-seafoam/20 text-ocean-blue';   // Growth indicators
     case 'Active':
       return 'bg-green-100 text-green-600';
     case 'Peaceful':

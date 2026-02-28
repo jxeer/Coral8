@@ -1,9 +1,19 @@
 /**
  * Labor Logging Component
- * Core functionality for recording culturally-rooted labor and earning COW tokens
- * Implements culturally-aware multipliers for different types of work
- * Features form validation, token calculation preview, and attestation upload
- * Central to Coral8's mission of valuing traditionally undercompensated labor
+ * Core form for recording culturally-rooted labor and earning COW tokens.
+ *
+ * How it works:
+ *   1. User selects a labor type from the LABOR_INDEX (e.g. "Care Work", "Teaching")
+ *   2. User enters hours worked (0.1–24, in 0.5-hour increments)
+ *   3. Optionally uploads an attestation file (photo/PDF proof of work)
+ *   4. A live earnings preview updates as the user types
+ *   5. On submit, the form posts to POST /api/labor-logs
+ *   6. On success, the token balances and stats caches are invalidated
+ *      so the dashboard reflects the newly earned COW tokens immediately
+ *
+ * Rendered in two layouts via the isMobile prop:
+ *   - Mobile:  single-column stacked form inside a Card
+ *   - Desktop: two-column grid form spanning a wider Card
  */
 
 import { useState } from "react";
@@ -21,6 +31,12 @@ import { useToast } from "../hooks/use-toast";
 import { apiRequest } from "../lib/queryClient";
 import { LABOR_INDEX, calculateCOWTokens, getLaborMultiplier } from "../lib/labor-index";
 
+/**
+ * Zod schema for the labor logging form.
+ * - laborType must be a non-empty string (validated against LABOR_INDEX keys on the server)
+ * - hoursWorked must parse to a number between 0.1 and 24
+ * - attestationUrl is optional; it gets populated by the file upload handler
+ */
 const laborFormSchema = z.object({
   laborType: z.string().min(1, "Please select a labor type"),
   hoursWorked: z.string().min(1, "Please enter hours worked")
@@ -34,6 +50,7 @@ const laborFormSchema = z.object({
 type LaborFormValues = z.infer<typeof laborFormSchema>;
 
 export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
+  // Tracks the file object selected by the user for display purposes
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -47,6 +64,15 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
     },
   });
 
+  /**
+   * Mutation for submitting the labor log to the API.
+   * On success:
+   *   - Shows a confirmation toast
+   *   - Resets the form back to empty defaults
+   *   - Invalidates /api/balances and /api/stats so token totals refresh
+   * On error:
+   *   - Shows a destructive toast with a retry prompt
+   */
   const laborMutation = useMutation({
     mutationFn: async (data: LaborFormValues) => {
       return apiRequest("POST", "/api/labor-logs", data);
@@ -58,11 +84,11 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
       });
       form.reset();
       setSelectedFile(null);
-      // Invalidate and refetch balance data
+      // Invalidate and refetch balance and stats data so the dashboard updates
       queryClient.invalidateQueries({ queryKey: ["/api/balances"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to submit labor log. Please try again.",
@@ -75,6 +101,12 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
     laborMutation.mutate(data);
   };
 
+  /**
+   * Opens a native file picker and stores the selected file.
+   * In this version the filename is stored in the form field as a placeholder.
+   * TODO: Wire this up to an actual file upload endpoint (e.g. S3 or Cloudinary)
+   *       so the attestation URL points to a real hosted file.
+   */
   const handleFileUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -83,26 +115,33 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         setSelectedFile(file);
-        // In a real app, you would upload this file and get a URL
+        // Placeholder — replace with real upload URL once file storage is wired up
         form.setValue('attestationUrl', `uploaded_${file.name}`);
       }
     };
     input.click();
   };
 
-  // Calculate preview COW earnings
+  /**
+   * Live earnings preview — recalculates whenever the user changes the labor
+   * type or hours worked. Uses the same formula the server applies so the
+   * displayed estimate exactly matches what will be recorded.
+   * Returns 0 if either field is empty, hiding the preview panel entirely.
+   */
   const selectedLaborType = form.watch("laborType");
   const hoursWorked = form.watch("hoursWorked");
   const previewEarnings = selectedLaborType && hoursWorked 
     ? calculateCOWTokens(parseFloat(hoursWorked), getLaborMultiplier(selectedLaborType))
     : 0;
 
+  // ── Mobile layout ────────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <Card className="p-6 border border-ocean-teal/20">
         <h3 className="text-lg font-semibold text-deep-navy mb-4">Log New Labor</h3>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Labor type dropdown — populated from the LABOR_INDEX multiplier map */}
             <FormField
               control={form.control}
               name="laborType"
@@ -116,6 +155,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      {/* Show each labor type with its COW multiplier in the label */}
                       {Object.keys(LABOR_INDEX).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type} (×{LABOR_INDEX[type]})
@@ -128,6 +168,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
               )}
             />
 
+            {/* Hours worked — step 0.5 so users can log half-hour increments */}
             <FormField
               control={form.control}
               name="hoursWorked"
@@ -150,6 +191,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
               )}
             />
 
+            {/* Optional attestation file upload */}
             <div>
               <label className="block text-sm font-medium text-deep-navy mb-2">
                 Community Attestation (Optional)
@@ -165,6 +207,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
               </div>
             </div>
 
+            {/* Live earnings preview — only visible once both fields are filled */}
             {previewEarnings > 0 && (
               <div className="bg-seafoam/20 rounded-xl p-4 text-center">
                 <p className="text-sm text-ocean-blue mb-1">Estimated Earnings</p>
@@ -185,11 +228,13 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
     );
   }
 
+  // ── Desktop layout (two-column grid) ────────────────────────────────────
   return (
     <Card className="col-span-2 p-6 border border-ocean-teal/20">
       <h3 className="text-lg font-semibold text-deep-navy mb-4">Log New Labor</h3>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
+          {/* Labor type dropdown */}
           <FormField
             control={form.control}
             name="laborType"
@@ -215,6 +260,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
             )}
           />
 
+          {/* Hours worked */}
           <FormField
             control={form.control}
             name="hoursWorked"
@@ -237,6 +283,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
             )}
           />
 
+          {/* Attestation upload — spans both columns on desktop */}
           <div className="col-span-2">
             <label className="block text-sm font-medium text-deep-navy mb-2">
               Community Attestation (Optional)
@@ -252,6 +299,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
             </div>
           </div>
 
+          {/* Earnings preview — spans both columns, hidden until fields are valid */}
           {previewEarnings > 0 && (
             <div className="col-span-2 bg-seafoam/20 rounded-xl p-4 text-center">
               <p className="text-sm text-ocean-blue mb-1">Estimated Earnings</p>
@@ -259,6 +307,7 @@ export function LaborLogging({ isMobile = false }: { isMobile?: boolean }) {
             </div>
           )}
 
+          {/* Submit button — spans both columns */}
           <div className="col-span-2">
             <Button
               type="submit"

@@ -71,6 +71,17 @@ export interface IStorage {
   updateTokenTransferStatus(transferId: string, status: string, transactionHash?: string, blockNumber?: number): Promise<void>;
 }
 
+/**
+ * MemStorage — In-Memory Storage Implementation
+ *
+ * Used during development when no database connection is available.
+ * All data is stored in JavaScript Maps and is lost when the server restarts.
+ *
+ * The constructor seeds sample data (a default user, proposals, marketplace items)
+ * so the UI looks populated immediately without needing any database records.
+ *
+ * Switch to DatabaseStorage for production (see bottom of this file).
+ */
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private laborLogs: Map<string, LaborLog>;
@@ -304,6 +315,9 @@ export class MemStorage implements IStorage {
     }
   }
 
+  // ── Labor Logs ────────────────────────────────────────────────────────────
+
+  /** Creates a new labor log entry with a generated UUID and current timestamp */
   async createLaborLog(laborLog: InsertLaborLog & { userId: string; cowTokensEarned: string; multiplier: string; proofHash?: string }): Promise<LaborLog> {
     const id = randomUUID();
     const log: LaborLog = { 
@@ -315,14 +329,22 @@ export class MemStorage implements IStorage {
     return log;
   }
 
+  /** Returns all labor logs belonging to a specific user, unordered */
   async getUserLaborLogs(userId: string): Promise<LaborLog[]> {
     return Array.from(this.laborLogs.values()).filter(log => log.userId === userId);
   }
 
+  // ── Token Balances ─────────────────────────────────────────────────────────
+
+  /**
+   * Retrieves the token balance record for a user.
+   * The map is keyed by userId (not the balance's own UUID) for O(1) lookup.
+   */
   async getTokenBalance(userId: string): Promise<TokenBalance | undefined> {
     return this.tokenBalances.get(userId);
   }
 
+  /** Creates a new token balance record, keyed by userId for fast retrieval */
   async createTokenBalance(balance: InsertTokenBalance): Promise<TokenBalance> {
     const id = randomUUID();
     const tokenBalance: TokenBalance = { 
@@ -334,6 +356,7 @@ export class MemStorage implements IStorage {
     return tokenBalance;
   }
 
+  /** Merges partial updates into an existing balance; throws if no record found */
   async updateTokenBalance(userId: string, updates: Partial<TokenBalance>): Promise<TokenBalance> {
     const existing = this.tokenBalances.get(userId);
     if (!existing) {
@@ -344,22 +367,30 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  // ── Governance ─────────────────────────────────────────────────────────────
+
+  /**
+   * Returns proposals with status "active" or "voting".
+   * Proposals in other states (passed, rejected) are excluded from the dashboard.
+   */
   async getActiveProposals(): Promise<GovernanceProposal[]> {
     return Array.from(this.governanceProposals.values()).filter(
       proposal => proposal.status === "active" || proposal.status === "voting"
     );
   }
 
+  /** Retrieves a single proposal by its ID */
   async getProposal(id: string): Promise<GovernanceProposal | undefined> {
     return this.governanceProposals.get(id);
   }
 
+  /** Creates a new proposal; vote counts start at 0 regardless of insert data */
   async createProposal(proposal: InsertGovernanceProposal): Promise<GovernanceProposal> {
     const id = randomUUID();
     const governanceProposal: GovernanceProposal = { 
       ...proposal, 
       id,
-      votesYes: 0,
+      votesYes: 0,   // Always initialise to 0 — votes come in via createVote
       votesNo: 0,
       createdAt: new Date()
     };
@@ -367,6 +398,7 @@ export class MemStorage implements IStorage {
     return governanceProposal;
   }
 
+  /** Records a user's Yes/No vote; one record per user per proposal */
   async createVote(vote: InsertVote): Promise<Vote> {
     const id = randomUUID();
     const newVote: Vote = { 
@@ -378,12 +410,20 @@ export class MemStorage implements IStorage {
     return newVote;
   }
 
+  /**
+   * Checks whether a user has already voted on a specific proposal.
+   * Used server-side to prevent duplicate votes.
+   */
   async getUserVote(userId: string, proposalId: string): Promise<Vote | undefined> {
     return Array.from(this.votes.values()).find(
       vote => vote.userId === userId && vote.proposalId === proposalId
     );
   }
 
+  /**
+   * Updates the Yes/No vote tallies on a proposal after a new vote is cast.
+   * Called after createVote to keep counts in sync.
+   */
   async updateProposalVotes(proposalId: string, votesYes: number, votesNo: number): Promise<void> {
     const proposal = this.governanceProposals.get(proposalId);
     if (proposal) {
@@ -393,14 +433,19 @@ export class MemStorage implements IStorage {
     }
   }
 
+  // ── Marketplace ────────────────────────────────────────────────────────────
+
+  /** Returns only active (non-deleted/non-sold) marketplace items */
   async getMarketplaceItems(): Promise<MarketplaceItem[]> {
     return Array.from(this.marketplaceItems.values()).filter(item => item.isActive);
   }
 
+  /** Retrieves a single marketplace item by its ID regardless of active status */
   async getMarketplaceItem(id: string): Promise<MarketplaceItem | undefined> {
     return this.marketplaceItems.get(id);
   }
 
+  /** Creates a new marketplace listing; isActive defaults to true in the schema */
   async createMarketplaceItem(item: InsertMarketplaceItem & { sellerId: string }): Promise<MarketplaceItem> {
     const id = randomUUID();
     const marketplaceItem: MarketplaceItem = { 
@@ -459,31 +504,43 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  // Token Transfer methods
+  // ── Token Transfers ────────────────────────────────────────────────────────
+
+  /** Records a new token transfer in its initial "pending" state */
   async createTokenTransfer(transfer: InsertTokenTransfer): Promise<TokenTransfer> {
     const id = randomUUID();
     const tokenTransfer: TokenTransfer = {
       ...transfer,
       id,
       timestamp: new Date(),
-      confirmedAt: null,
+      confirmedAt: null,   // Set when status transitions to "confirmed"
     };
     this.tokenTransfers.set(id, tokenTransfer);
     return tokenTransfer;
   }
 
+  /** Returns all transfers initiated by a specific user ID */
   async getTokenTransfers(userId: string): Promise<TokenTransfer[]> {
     return Array.from(this.tokenTransfers.values()).filter(
       transfer => transfer.fromUserId === userId
     );
   }
 
+  /**
+   * Returns all transfers involving a wallet address as sender or receiver.
+   * Used to show a full transaction history for a connected wallet.
+   */
   async getTokenTransfersByAddress(address: string): Promise<TokenTransfer[]> {
     return Array.from(this.tokenTransfers.values()).filter(
       transfer => transfer.fromAddress === address || transfer.toAddress === address
     );
   }
 
+  /**
+   * Updates the status of a transfer after a blockchain confirmation or failure.
+   * Optionally stores the on-chain transaction hash and block number.
+   * Sets confirmedAt timestamp when the status moves to "confirmed".
+   */
   async updateTokenTransferStatus(
     transferId: string, 
     status: string, 
@@ -501,13 +558,36 @@ export class MemStorage implements IStorage {
   }
 }
 
+/**
+ * DatabaseStorage — Production PostgreSQL Storage Implementation
+ *
+ * Uses Drizzle ORM to interact with the Neon serverless PostgreSQL database.
+ * All data persists across server restarts, unlike MemStorage.
+ *
+ * This class is instantiated as the singleton `storage` export at the bottom
+ * of this file and injected into all API route handlers via server/routes.ts.
+ *
+ * Key differences from MemStorage:
+ *   - Uses db.select/insert/update queries instead of Map operations
+ *   - Supports concurrent access safely (ACID transactions)
+ *   - Orders results by createdAt/timestamp for consistent pagination
+ *   - upsertUser uses onConflictDoUpdate for idempotent OAuth user creation
+ */
 export class DatabaseStorage implements IStorage {
-  // Users (IMPORTANT - these methods are mandatory for Replit Auth)
+  // ── Users ──────────────────────────────────────────────────────────────────
+
+  /** Fetches a user by their primary key ID */
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return user || undefined;
   }
 
+  /**
+   * Insert or update a user record in a single query.
+   * Used by the Google OAuth flow: if the user already exists (same ID),
+   * their profile fields are updated; otherwise a new row is inserted.
+   * This prevents duplicate user records across multiple logins.
+   */
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -523,11 +603,13 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  /** Looks up a user by their connected wallet address (e.g. MetaMask) */
   async getUserByWallet(walletAddress: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress)).limit(1);
     return user || undefined;
   }
 
+  /** Creates a new user row from an insert payload */
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
@@ -566,27 +648,34 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
-  // Labor Logs
+  // ── Labor Logs ────────────────────────────────────────────────────────────
+
+  /** Inserts a new labor log row; COW tokens and multiplier are pre-calculated by the route */
   async createLaborLog(laborLog: InsertLaborLog & { userId: string; cowTokensEarned: string; multiplier: string; proofHash?: string }): Promise<LaborLog> {
     const [newLog] = await db.insert(laborLogs).values(laborLog).returning();
     return newLog;
   }
 
+  /** Returns all labor logs for a user, newest first */
   async getUserLaborLogs(userId: string): Promise<LaborLog[]> {
     return await db.select().from(laborLogs).where(eq(laborLogs.userId, userId)).orderBy(desc(laborLogs.createdAt));
   }
 
-  // Token Balances
+  // ── Token Balances ─────────────────────────────────────────────────────────
+
+  /** Fetches the single token balance record for a user (one row per user) */
   async getTokenBalance(userId: string): Promise<TokenBalance | undefined> {
     const [balance] = await db.select().from(tokenBalances).where(eq(tokenBalances.userId, userId)).limit(1);
     return balance || undefined;
   }
 
+  /** Creates a new token balance row for a user; called on first login if none exists */
   async createTokenBalance(balance: InsertTokenBalance): Promise<TokenBalance> {
     const [newBalance] = await db.insert(tokenBalances).values(balance).returning();
     return newBalance;
   }
 
+  /** Merges partial updates (e.g. updated COW1 balance) into the user's balance row */
   async updateTokenBalance(userId: string, updates: Partial<TokenBalance>): Promise<TokenBalance> {
     const [updatedBalance] = await db.update(tokenBalances)
       .set({ ...updates, updatedAt: new Date() })
@@ -595,26 +684,39 @@ export class DatabaseStorage implements IStorage {
     return updatedBalance;
   }
 
-  // Governance
+  // ── Governance ─────────────────────────────────────────────────────────────
+
+  /**
+   * Returns all proposals ordered by creation date (newest first).
+   * Unlike MemStorage, this does NOT filter by status — the API route
+   * returns all proposals and the frontend filters if needed.
+   */
   async getActiveProposals(): Promise<GovernanceProposal[]> {
     return await db.select().from(governanceProposals).orderBy(desc(governanceProposals.createdAt));
   }
 
+  /** Fetches a single proposal by primary key */
   async getProposal(id: string): Promise<GovernanceProposal | undefined> {
     const [proposal] = await db.select().from(governanceProposals).where(eq(governanceProposals.id, id)).limit(1);
     return proposal || undefined;
   }
 
+  /** Inserts a new governance proposal */
   async createProposal(proposal: InsertGovernanceProposal): Promise<GovernanceProposal> {
     const [newProposal] = await db.insert(governanceProposals).values(proposal).returning();
     return newProposal;
   }
 
+  /** Records a user's vote (true = Yes, false = No) for a proposal */
   async createVote(vote: InsertVote): Promise<Vote> {
     const [newVote] = await db.insert(votes).values(vote).returning();
     return newVote;
   }
 
+  /**
+   * Checks if a user has already voted on a specific proposal.
+   * Uses a compound WHERE on userId AND proposalId for the uniqueness check.
+   */
   async getUserVote(userId: string, proposalId: string): Promise<Vote | undefined> {
     const [vote] = await db.select().from(votes)
       .where(and(eq(votes.userId, userId), eq(votes.proposalId, proposalId)))
@@ -622,33 +724,45 @@ export class DatabaseStorage implements IStorage {
     return vote || undefined;
   }
 
+  /** Updates the cached Yes/No vote tallies on a proposal row */
   async updateProposalVotes(proposalId: string, votesYes: number, votesNo: number): Promise<void> {
     await db.update(governanceProposals)
       .set({ votesYes, votesNo })
       .where(eq(governanceProposals.id, proposalId));
   }
 
-  // Marketplace
+  // ── Marketplace ────────────────────────────────────────────────────────────
+
+  /** Returns all marketplace items, newest first (isActive filter applied in route if needed) */
   async getMarketplaceItems(): Promise<MarketplaceItem[]> {
     return await db.select().from(marketplaceItems).orderBy(desc(marketplaceItems.createdAt));
   }
 
+  /** Fetches a single marketplace listing by ID */
   async getMarketplaceItem(id: string): Promise<MarketplaceItem | undefined> {
     const [item] = await db.select().from(marketplaceItems).where(eq(marketplaceItems.id, id)).limit(1);
     return item || undefined;
   }
 
+  /** Creates a new marketplace listing linked to the seller's user ID */
   async createMarketplaceItem(item: InsertMarketplaceItem & { sellerId: string }): Promise<MarketplaceItem> {
     const [newItem] = await db.insert(marketplaceItems).values(item).returning();
     return newItem;
   }
 
-  // User Stats
+  // ── User Stats ─────────────────────────────────────────────────────────────
+
+  /** Fetches the stats record for a user (one row per user) */
   async getUserStats(userId: string): Promise<UserStats | undefined> {
     const [stats] = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
     return stats || undefined;
   }
 
+  /**
+   * Creates a default stats record for a user who has none yet.
+   * Called automatically by GET /api/stats on first login so the dashboard
+   * always has something to render rather than staying in a loading state.
+   */
   async createUserStats(userId: string): Promise<UserStats> {
     const [newStats] = await db.insert(userStats).values({
       userId,
@@ -663,6 +777,7 @@ export class DatabaseStorage implements IStorage {
     return newStats;
   }
 
+  /** Merges partial updates into the user's stats row */
   async updateUserStats(userId: string, stats: Partial<UserStats>): Promise<UserStats> {
     const [updatedStats] = await db.update(userStats)
       .set({ ...stats, updatedAt: new Date() })
@@ -671,24 +786,37 @@ export class DatabaseStorage implements IStorage {
     return updatedStats;
   }
 
-  // Token Transfer methods for DatabaseStorage
+  // ── Token Transfers ────────────────────────────────────────────────────────
+
+  /** Records a new COW token transfer; status starts as "pending" by default */
   async createTokenTransfer(transfer: InsertTokenTransfer): Promise<TokenTransfer> {
     const [newTransfer] = await db.insert(tokenTransfers).values(transfer).returning();
     return newTransfer;
   }
 
+  /** Returns all transfers sent by a user, newest first */
   async getTokenTransfers(userId: string): Promise<TokenTransfer[]> {
     return await db.select().from(tokenTransfers)
       .where(eq(tokenTransfers.fromUserId, userId))
       .orderBy(desc(tokenTransfers.timestamp));
   }
 
+  /**
+   * Returns transfers where the given address appears as sender.
+   * Note: currently only matches fromAddress; extend to toAddress if a
+   * full bidirectional history is needed.
+   */
   async getTokenTransfersByAddress(address: string): Promise<TokenTransfer[]> {
     return await db.select().from(tokenTransfers)
       .where(eq(tokenTransfers.fromAddress, address))
       .orderBy(desc(tokenTransfers.timestamp));
   }
 
+  /**
+   * Updates a transfer's status after a blockchain event.
+   * Optionally stores the on-chain transaction hash and block number.
+   * Sets confirmedAt when status becomes "confirmed".
+   */
   async updateTokenTransferStatus(
     transferId: string, 
     status: string, 
@@ -706,4 +834,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
+// Singleton storage instance — imported by server/routes.ts for all API handlers
 export const storage = new DatabaseStorage();

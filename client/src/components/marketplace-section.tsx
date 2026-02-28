@@ -1,9 +1,19 @@
 /**
  * Marketplace Section Component
- * Community-driven marketplace for trading goods and services with COW tokens
- * Features culturally-significant items like handcrafted artwork and traditional goods
- * Enables economic exchange within the Coral8 ecosystem using token payments
- * Supports local artisans and community creators
+ * Community-driven marketplace for trading goods and services priced in COW tokens.
+ *
+ * Data flow:
+ *   - Real items are fetched from GET /api/marketplace (database-backed)
+ *   - A set of hardcoded sample items is appended to ensure the section always
+ *     looks populated, even for new deployments with an empty database
+ *   - Both sets are merged into allItems and rendered identically
+ *
+ * Purchase flow (current state):
+ *   - The "Buy Now" button triggers handlePurchase, which is currently a stub
+ *   - Full COW token payment integration requires smart contract deployment
+ *     (see TODO in handlePurchase below)
+ *
+ * Layout: responsive grid — 1 col on mobile, up to 4 cols on xl screens
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -12,15 +22,25 @@ import { Button } from "./ui/button";
 import { MarketplaceItem } from "@shared/schema";
 
 export function MarketplaceSection() {
+  // Fetch live marketplace items from the API
   const { data: items, isLoading } = useQuery<MarketplaceItem[]>({
     queryKey: ["/api/marketplace"],
   });
 
+  /**
+   * Handles a purchase button click.
+   *
+   * TODO: Replace alert with actual COW token payment flow once smart contracts
+   *       are deployed on the Optimism network. This will involve:
+   *         1. Checking the buyer's COW token balance
+   *         2. Calling the marketplace contract's purchase() function via MetaMask
+   *         3. Updating the item's ownership/availability in the database
+   */
   const handlePurchase = (itemId: string, price: string) => {
-    // TODO: Implement marketplace purchase logic with COW tokens
     alert(`Purchase functionality will integrate with COW token payments. Item ID: ${itemId}, Price: ${price} COW`);
   };
 
+  // Show skeleton cards while the API request is in flight
   if (isLoading) {
     return (
       <div className="mb-8">
@@ -43,7 +63,11 @@ export function MarketplaceSection() {
     );
   }
 
-  // Add additional sample items to match the design
+  /**
+   * Sample items used to pad the marketplace when the database is empty.
+   * These are static and defined client-side — they are never written to the DB.
+   * IDs are prefixed with "item-" to avoid colliding with real database UUIDs.
+   */
   const sampleItems: MarketplaceItem[] = [
     {
       id: "item-3",
@@ -67,6 +91,7 @@ export function MarketplaceSection() {
     }
   ];
 
+  // Merge real database items with sample padding items
   const allItems = [...(items || []), ...sampleItems];
 
   return (
@@ -77,12 +102,14 @@ export function MarketplaceSection() {
           Browse All
         </Button>
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {allItems.map((item) => (
           <Card 
             key={item.id} 
             className="overflow-hidden border border-ocean-teal/20 hover:shadow-lg transition-all transform hover:scale-[1.02]"
           >
+            {/* Item image — falls back to a generic ocean image if none set */}
             <img 
               src={item.imageUrl || "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"} 
               alt={item.title}
@@ -90,6 +117,7 @@ export function MarketplaceSection() {
             />
             <div className="p-4">
               <h4 className="font-semibold text-deep-navy mb-2">{item.title}</h4>
+              {/* line-clamp-2 keeps cards a consistent height regardless of description length */}
               <p className="text-sm text-moon-gray mb-3 line-clamp-2">{item.description}</p>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-bold text-ocean-blue">{item.price} COW</span>
